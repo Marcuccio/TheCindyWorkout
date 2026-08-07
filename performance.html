@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d1517">
+  <title>Performance | Cindy Workout</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./pages.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="./index.html">CINDY</a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="./index.html">Workout</a>
+      <a class="active" href="./performance.html">Performance</a>
+      <a href="./privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <p class="eyebrow">Your training, on this device</p>
+    <h1>Performance over time.</h1>
+    <p class="lead">Every completed workout is stored locally in this browser. This view turns those sessions into useful trends without accounts, analytics, or cloud sync.</p>
+
+    <section class="stats-grid" aria-label="Performance summary">
+      <article class="card stat"><div class="stat-value" id="sessionCount">0</div><div class="stat-label">Workouts</div></article>
+      <article class="card stat"><div class="stat-value" id="bestRounds">0</div><div class="stat-label">Best rounds</div></article>
+      <article class="card stat"><div class="stat-value" id="averageRounds">0</div><div class="stat-label">Average rounds</div></article>
+      <article class="card stat"><div class="stat-value" id="totalReps">0</div><div class="stat-label">Total reps</div></article>
+    </section>
+
+    <section class="card section">
+      <h2>Round progression</h2>
+      <p class="section-copy">Your latest ten completed workouts. Custom rep recipes remain attached to each session.</p>
+      <div class="chart" id="chart" aria-label="Rounds by session"></div>
+    </section>
+
+    <section class="card section">
+      <h2>Session history</h2>
+      <p class="section-copy">Newest workouts appear first.</p>
+      <div class="session-list" id="sessionList"></div>
+      <div class="actions">
+        <a class="button primary" href="./index.html">Start a workout</a>
+        <button class="button" id="exportBtn" type="button">Export JSON</button>
+        <button class="button danger" id="clearBtn" type="button">Clear performance data</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="./storage.js"></script>
+  <script>
+    const $ = id => document.getElementById(id);
+
+    function formatDate(value) {
+      return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+    }
+
+    function render() {
+      const sessions = window.CindyStore.getSessions().sort((a, b) => new Date(a.completedAt) - new Date(b.completedAt));
+      const rounds = sessions.map(session => Number(session.rounds) || 0);
+      const reps = sessions.reduce((sum, session) => sum + (Number(session.totalReps) || 0), 0);
+
+      $('sessionCount').textContent = sessions.length;
+      $('bestRounds').textContent = rounds.length ? Math.max(...rounds) : 0;
+      $('averageRounds').textContent = rounds.length ? (rounds.reduce((sum, value) => sum + value, 0) / rounds.length).toFixed(1) : '0';
+      $('totalReps').textContent = reps.toLocaleString();
+
+      const recent = sessions.slice(-10);
+      const max = Math.max(1, ...recent.map(session => session.rounds));
+      $('chart').innerHTML = recent.length ? recent.map((session, index) => `
+        <div class="bar-wrap" title="${formatDate(session.completedAt)}: ${session.rounds} rounds">
+          <div class="bar-value">${session.rounds}</div>
+          <div class="bar" style="height:${Math.max(5, session.rounds / max * 170)}px;animation-delay:${index * 45}ms"></div>
+          <div class="bar-label">${new Date(session.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
+        </div>`).join('') : '<div class="empty">Complete your first workout to begin the chart.</div>';
+
+      $('sessionList').innerHTML = sessions.length ? sessions.slice().reverse().map(session => `
+        <article class="session-row">
+          <div class="session-date">${formatDate(session.completedAt)}</div>
+          <div class="session-value"><strong>${session.rounds}</strong> rounds</div>
+          <div class="session-value"><strong>${session.totalReps}</strong> reps</div>
+          <div class="session-value">${session.recipe.pullups}/${session.recipe.pushups}/${session.recipe.squats}</div>
+        </article>`).join('') : '<div class="empty">No completed workouts saved yet.</div>';
+    }
+
+    $('exportBtn').addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(window.CindyStore.exportData(), null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `cindy-workout-data-${new Date().toISOString().slice(0, 10)}.json`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+
+    $('clearBtn').addEventListener('click', () => {
+      if (!confirm('Delete all saved workout history from this browser? This cannot be undone.')) return;
+      window.CindyStore.clearSessions();
+      render();
+    });
+
+    render();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+  </script>
+</body>
+</html>

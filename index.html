@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d1517">
+  <title>CINDY — CrossFit Workout Tracker</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d1517;
+      --surface:  rgba(224,235,231,0.055);
+      --border:   rgba(224,235,231,0.12);
+      --orange:   #d7a86e;
+      --purple:   #8ca6a1;
+      --pink:     #c58f9f;
+      --green:    #79b59a;
+      --text:     #e8efec;
+      --muted:    rgba(232,239,236,0.56);
+      --circ:     753.982; /* 2*PI*120 */
+    }
+
+    html, body { height: 100%; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); overflow: hidden; }
+
+    body {
+      background:
+        radial-gradient(ellipse at 15% 5%,  rgba(140,166,161,.17) 0%, transparent 45%),
+        radial-gradient(ellipse at 85% 90%, rgba(215,168,110,.11) 0%, transparent 45%),
+        radial-gradient(ellipse at 50% 50%, rgba(197,143,159,.055) 0%, transparent 60%),
+        var(--bg);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before,
+    body::after {
+      content: '';
+      position: fixed;
+      width: min(38vw, 440px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      filter: blur(90px);
+      pointer-events: none;
+      opacity: .12;
+      animation: ambientFloat 18s ease-in-out infinite alternate;
+    }
+    body::before { top: 12%; left: 58%; background: var(--purple); }
+    body::after { right: 68%; bottom: 2%; background: var(--orange); animation-delay: -8s; }
+    @keyframes ambientFloat { to { transform: translate(-7vw, 8vh) scale(1.18); } }
+
+    /* ── HEADER ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: clamp(11px, 1.8dvh, 18px) clamp(14px, 2.5vw, 24px);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,21,23,0.8);
+      flex: 0 0 auto;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 6px;
+      background: linear-gradient(135deg, var(--orange), var(--pink), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-decoration: none;
+    }
+
+    .brand-area { display: flex; align-items: center; gap: clamp(12px, 2vw, 24px); }
+    .site-nav { display: flex; gap: 3px; }
+    .site-nav a {
+      padding: 7px 10px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 650;
+      text-decoration: none;
+      transition: color .2s, background .2s, transform .2s;
+    }
+    .site-nav a:hover,
+    .site-nav a.active { color: var(--text); background: var(--surface); transform: translateY(-1px); }
+
+    .header-right { display: flex; align-items: center; gap: 12px; }
+
+    .voice-pill {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 7px 14px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .voice-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background .2s;
+      flex-shrink: 0;
+    }
+    .voice-dot.speaking { background: var(--green); animation: blink .5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+    .music-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 7px 14px;
+    }
+
+    .btn-icon {
+      background: none; border: none;
+      color: var(--text); cursor: pointer;
+      font-size: 16px; padding: 0;
+      opacity: .7; transition: opacity .2s;
+      line-height: 1;
+    }
+    .btn-icon:hover { opacity: 1; }
+
+    #volumeSlider {
+      -webkit-appearance: none;
+      width: 72px; height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(to right, var(--orange), var(--purple));
+      outline: none; cursor: pointer;
+    }
+    #volumeSlider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px; height: 13px;
+      border-radius: 50%; background: white; cursor: pointer;
+      box-shadow: 0 0 6px rgba(215,168,110,.35);
+    }
+
+    /* ── MAIN ── */
+    main {
+      width: 100%;
+      max-width: 1120px;
+      min-height: 0;
+      flex: 1 1 auto;
+      margin: 0 auto;
+      padding: clamp(10px, 2dvh, 24px) clamp(12px, 2.5vw, 28px);
+      display: grid;
+      grid-template-columns: minmax(310px, 1.08fr) minmax(340px, .92fr);
+      gap: clamp(14px, 2.5vw, 30px);
+      overflow: hidden;
+    }
+
+    .workout-stage,
+    .side-panel {
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .workout-stage {
+      align-items: center;
+      justify-content: center;
+      gap: clamp(7px, 1.35dvh, 15px);
+    }
+
+    .side-panel {
+      justify-content: center;
+      gap: clamp(8px, 1.5dvh, 16px);
+    }
+
+    .side-panel .card {
+      min-height: 0;
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .workout-meta {
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    /* ── TIMER RING ── */
+    .timer-wrap {
+      position: relative;
+      width: clamp(160px, min(31vw, 38dvh), 300px);
+      height: auto;
+      aspect-ratio: 1;
+      flex: 0 1 auto;
+      filter: drop-shadow(0 0 40px rgba(140,166,161,.12));
+    }
+
+    .timer-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+    .ring-bg { fill: none; stroke: rgba(255,255,255,.05); stroke-width: 9; }
+    .ring-progress {
+      fill: none;
+      stroke: url(#ringGradient);
+      stroke-width: 9;
+      stroke-linecap: round;
+      stroke-dasharray: 753.982;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);
+    }
+
+    .ring-glow {
+      fill: none;
+      stroke: url(#ringGradient);
+      stroke-width: 18;
+      stroke-linecap: round;
+      stroke-dasharray: 753.982;
+      stroke-dashoffset: 0;
+      opacity: .12;
+      transition: stroke-dashoffset .8s cubic-bezier(.4,0,.2,1);
+      filter: blur(4px);
+    }
+
+    .timer-inner {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 6px;
+    }
+
+    .timer-time {
+      font-size: clamp(38px, min(6vw, 7dvh), 56px); font-weight: 900;
+      letter-spacing: -3px;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+      background: linear-gradient(180deg, #fff 60%, rgba(255,255,255,.5));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .timer-round-label { font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; }
+    .timer-round-num { font-size: 26px; font-weight: 800; color: var(--orange); line-height: 1; }
+
+    /* ── STATUS BADGE ── */
+    .status-badge {
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      padding: 6px 18px; border-radius: 50px;
+      font-weight: 700;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      transition: all .3s;
+    }
+    .status-badge.running { background: rgba(121,181,154,.1); border-color: rgba(121,181,154,.32); color: var(--green); }
+    .status-badge.paused  { background: rgba(215,168,110,.1); border-color: rgba(215,168,110,.32); color: var(--orange); }
+    .status-badge.done    { background: rgba(140,166,161,.12);border-color: rgba(140,166,161,.4);  color: var(--purple); }
+
+    /* ── EXERCISE PILLS ── */
+    .exercise-track { display: flex; gap: clamp(6px, 1vw, 10px); width: 100%; }
+
+    .ex-pill {
+      flex: 1;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 5px;
+      padding: clamp(8px, 1.5dvh, 16px) 8px clamp(7px, 1.3dvh, 14px);
+      border-radius: 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all .35s ease;
+      position: relative; overflow: hidden;
+    }
+
+    .ex-pill::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, var(--orange), var(--purple));
+      opacity: 0;
+      transition: opacity .35s;
+    }
+
+    .ex-pill.active::before { opacity: .08; }
+    .ex-pill.active {
+      border-color: rgba(215,168,110,.48);
+      box-shadow: 0 0 28px rgba(215,168,110,.13), inset 0 0 0 1px rgba(215,168,110,.16);
+      animation: pillPulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pillPulse {
+      0%,100% { box-shadow: 0 0 20px rgba(215,168,110,.12), inset 0 0 0 1px rgba(215,168,110,.16); }
+      50%      { box-shadow: 0 0 38px rgba(140,166,161,.2), inset 0 0 0 1px rgba(140,166,161,.3); }
+    }
+
+    .ex-pill.done-ex { border-color: rgba(121,181,154,.28); background: rgba(121,181,154,.05); }
+    .ex-pill.done-ex::before { opacity: 0; }
+
+    .pill-check {
+      position: absolute; top: 7px; right: 9px;
+      font-size: 11px; color: var(--green);
+      opacity: 0; transition: opacity .3s;
+    }
+    .ex-pill.done-ex .pill-check { opacity: 1; }
+
+    .pill-icon { font-size: clamp(18px, 2.8dvh, 24px); position: relative; z-index: 1; }
+    .pill-reps { font-size: clamp(18px, 2.7dvh, 22px); font-weight: 900; position: relative; z-index: 1; transition: color .3s; }
+    .pill-name { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); font-weight: 600; position: relative; z-index: 1; transition: color .3s; }
+
+    .ex-pill.active .pill-reps { color: var(--orange); }
+    .ex-pill.active .pill-name { color: rgba(215,168,110,.85); }
+
+    /* ── DONE BUTTON ── */
+    .btn-done {
+      width: 100%; padding: clamp(12px, 1.8dvh, 18px);
+      font-size: 15px; font-weight: 800;
+      letter-spacing: 2px; text-transform: uppercase;
+      border: none; border-radius: 16px;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--orange) 0%, var(--pink) 50%, var(--purple) 100%);
+      background-size: 200% 200%;
+      color: white;
+      box-shadow: 0 4px 32px rgba(140,166,161,.2);
+      transition: all .25s ease;
+      font-family: inherit;
+      position: relative; overflow: hidden;
+    }
+    .btn-done::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,.1);
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .btn-done:hover:not(:disabled)::after { opacity: 1; }
+    .btn-done:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 44px rgba(140,166,161,.28);
+    }
+    .btn-done:active:not(:disabled) { transform: translateY(0); }
+    .btn-done:disabled {
+      opacity: .25; cursor: not-allowed;
+      transform: none; box-shadow: none;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: clamp(12px, 2dvh, 20px);
+      backdrop-filter: blur(10px);
+    }
+
+    .card-title {
+      font-size: 10px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--muted);
+      font-weight: 700; margin-bottom: clamp(8px, 1.5dvh, 16px);
+      display: flex; align-items: center; gap: 8px;
+    }
+    .card-title::before {
+      content: '';
+      display: inline-block; width: 18px; height: 2px;
+      background: linear-gradient(to right, var(--orange), var(--purple));
+      border-radius: 1px;
+    }
+
+    /* ── REP LOGGER ── */
+    .mic-panel {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 14px;
+      align-items: center;
+      padding: clamp(9px, 1.4dvh, 14px);
+      margin-bottom: clamp(8px, 1.5dvh, 16px);
+      border: 1px solid rgba(140,166,161,.22);
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(140,166,161,.09), rgba(215,168,110,.05));
+    }
+
+    .mic-button {
+      width: 64px; height: 64px;
+      display: grid; place-items: center;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--orange), var(--pink), var(--purple));
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 7px 26px rgba(140,166,161,.2);
+      transition: transform .2s, box-shadow .2s, opacity .2s;
+      position: relative;
+    }
+    .mic-button svg { width: 26px; height: 26px; fill: currentColor; position: relative; z-index: 1; }
+    .mic-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 34px rgba(140,166,161,.3); }
+    .mic-button:disabled { opacity: .32; cursor: not-allowed; box-shadow: none; }
+    .mic-button.listening { animation: micPulse 1.25s ease-in-out infinite; }
+    .mic-button.listening::before,
+    .mic-button.listening::after {
+      content: '';
+      position: absolute; inset: -7px;
+      border: 1px solid rgba(197,143,159,.55);
+      border-radius: 50%;
+      animation: micWave 1.4s ease-out infinite;
+    }
+    .mic-button.listening::after { animation-delay: .55s; }
+    @keyframes micPulse { 50% { transform: scale(.94); } }
+    @keyframes micWave { to { opacity: 0; transform: scale(1.3); } }
+
+    .mic-copy { min-width: 0; }
+    .mic-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .mic-heading { font-size: 12px; font-weight: 800; letter-spacing: .5px; }
+    .mic-language {
+      color: var(--muted);
+      background: rgba(8,8,15,.5);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 4px 6px;
+      font: 600 10px 'Inter', sans-serif;
+      outline: none;
+    }
+    .mic-status {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+      min-height: 32px;
+    }
+    .mic-status.listening { color: #f9a8d4; }
+    .mic-status.success { color: var(--green); }
+    .mic-status.error { color: #fb7185; }
+    .mic-example {
+      grid-column: 1 / -1;
+      color: rgba(240,240,248,.3);
+      font-size: 10px;
+      line-height: 1.45;
+      padding-top: 1px;
+    }
+
+    .rep-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .rep-field { display: flex; flex-direction: column; gap: 6px; }
+    .rep-field label { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+    .rep-field input {
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 22px; font-weight: 800;
+      text-align: center;
+      padding: 12px 4px; width: 100%;
+      outline: none; font-family: inherit;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .rep-field input:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(215,168,110,.13);
+    }
+    .rep-field input:disabled {
+      color: rgba(240,240,248,.55);
+      cursor: not-allowed;
+      opacity: .7;
+    }
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .config-note {
+      margin: -3px 0 clamp(8px, 1.3dvh, 13px);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .btn-save {
+      width: 100%; padding: 13px;
+      font-size: 12px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      border: 1px solid rgba(215,168,110,.3);
+      border-radius: 12px; cursor: pointer;
+      background: rgba(215,168,110,.07);
+      color: var(--orange);
+      transition: all .2s; font-family: inherit;
+    }
+    .btn-save:hover { background: rgba(215,168,110,.14); border-color: rgba(215,168,110,.5); }
+
+    /* ── HISTORY ── */
+    .history-list {
+      margin-top: clamp(7px, 1.3dvh, 14px);
+      display: flex; flex-direction: column; gap: 7px;
+      min-height: 0;
+      max-height: min(200px, 18dvh);
+      overflow-y: auto;
+    }
+
+    .h-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid rgba(255,255,255,.05);
+      border-radius: 10px; font-size: 12px;
+      animation: slideIn .3s ease;
+    }
+    @keyframes slideIn { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+
+    .h-time { color: var(--muted); font-size: 10px; min-width: 44px; font-variant-numeric: tabular-nums; }
+    .h-round { color: var(--purple); font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+    .h-reps { flex: 1; color: var(--text); }
+    .h-reps strong { color: var(--orange); }
+    .h-source { color: var(--purple); font-size: 11px; }
+
+    /* ── CONTROLS ── */
+    .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+
+    .btn-ctrl {
+      padding: 16px; font-size: 13px; font-weight: 800;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      border-radius: 14px; cursor: pointer;
+      transition: all .2s; font-family: inherit;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, var(--orange), var(--purple));
+      border: none; color: white;
+      box-shadow: 0 4px 24px rgba(140,166,161,.18);
+    }
+    .btn-start:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(140,166,161,.27);
+    }
+    .btn-start:disabled { opacity: .3; cursor: not-allowed; }
+
+    .btn-reset {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .btn-reset:hover { border-color: rgba(255,255,255,.2); color: var(--text); }
+
+    /* ── MUSIC FILE ── */
+    .music-swap {
+      text-align: center;
+      font-size: 11px; color: var(--muted);
+    }
+    .music-swap button {
+      background: none; border: none;
+      color: var(--muted); cursor: pointer;
+      font-size: 11px; text-decoration: underline;
+      text-underline-offset: 2px; font-family: inherit;
+      transition: color .2s;
+    }
+    .music-swap button:hover { color: var(--text); }
+
+    /* ── END SCREEN ── */
+    #endScreen {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(8,8,15,.96);
+      backdrop-filter: blur(24px);
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: clamp(8px, 2dvh, 20px);
+      padding: clamp(14px, 4dvh, 32px) 24px;
+    }
+    #endScreen.visible { display: flex; }
+
+    .end-emoji { font-size: 48px; animation: pop .5s cubic-bezier(.175,.885,.32,1.275); }
+    @keyframes pop { from{transform:scale(0)} to{transform:scale(1)} }
+
+    .end-title { font-size: 12px; letter-spacing: 4px; text-transform: uppercase; color: var(--orange); font-weight: 700; }
+
+    .end-score {
+      font-size: clamp(52px, 10dvh, 80px); font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, var(--orange), var(--pink), var(--purple));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: countUp .6s ease;
+    }
+    @keyframes countUp { from{transform:scale(.6);opacity:0} to{transform:scale(1);opacity:1} }
+
+    .end-sublabel { color: var(--muted); font-size: 12px; letter-spacing: 3px; text-transform: uppercase; }
+
+    .end-stats {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 10px; width: 100%; max-width: 360px;
+    }
+
+    .end-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: clamp(9px, 1.8dvh, 16px);
+      text-align: center;
+    }
+    .end-stat-val { font-size: 28px; font-weight: 900; }
+    .end-stat-label { font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-top: 4px; }
+
+    .end-history {
+      width: 100%; max-width: 360px;
+      max-height: min(150px, 16dvh); overflow-y: auto;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+
+    .end-actions { display: flex; gap: 10px; width: 100%; max-width: 360px; }
+
+    .btn-copy {
+      flex: 1; padding: 14px;
+      font-size: 12px; font-weight: 800;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      background: linear-gradient(135deg, var(--orange), var(--purple));
+      border: none; border-radius: 12px; color: white;
+      cursor: pointer; font-family: inherit;
+      transition: all .2s;
+    }
+    .btn-copy:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(140,166,161,.24); }
+
+    .btn-restart {
+      flex: 1; padding: 14px;
+      font-size: 12px; font-weight: 800;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px; color: var(--muted);
+      cursor: pointer; font-family: inherit;
+      transition: all .2s;
+    }
+    .btn-restart:hover { border-color: rgba(255,255,255,.25); color: var(--text); }
+
+    /* ── PARTICLES ── */
+    .particle {
+      position: fixed; pointer-events: none; z-index: 300;
+      border-radius: 50%;
+      animation: fall linear forwards;
+    }
+    @keyframes fall {
+      0%   { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+      80%  { opacity: 1; }
+      100% { opacity: 0; transform: translateY(105vh) rotate(720deg) scale(.5); }
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 2px; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 719px) and (orientation: portrait) {
+      header { padding-block: 9px; }
+      .logo { font-size: 17px; letter-spacing: 4px; }
+      .voice-pill { padding: 6px 9px; font-size: 9px; }
+      .music-controls { padding: 6px 9px; }
+      #volumeSlider { width: 52px; }
+
+      main {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(6px, 1dvh, 10px);
+        padding: clamp(6px, 1dvh, 10px) clamp(9px, 3vw, 16px);
+      }
+
+      .workout-stage {
+        flex: 0 0 auto;
+        gap: clamp(4px, .8dvh, 8px);
+      }
+
+      .side-panel {
+        flex: 1 1 auto;
+        gap: clamp(5px, .8dvh, 9px);
+      }
+
+      .timer-wrap { width: clamp(138px, 23dvh, 205px); }
+      .timer-time { font-size: clamp(34px, 6.5dvh, 48px); }
+      .timer-round-label { font-size: 9px; }
+      .timer-round-num { font-size: clamp(18px, 3dvh, 24px); }
+      .status-badge { padding: 4px 13px; font-size: 9px; }
+      .ex-pill { border-radius: 13px; gap: 2px; }
+      .pill-name { font-size: 9px; }
+      .btn-done { border-radius: 12px; font-size: 12px; }
+
+      .side-panel .card { padding: clamp(9px, 1.3dvh, 13px); }
+      .mic-panel { grid-template-columns: 52px 1fr; gap: 9px; border-radius: 13px; }
+      .mic-button { width: 48px; height: 48px; }
+      .mic-button svg { width: 21px; height: 21px; }
+      .mic-status { min-height: 0; font-size: 10px; margin-top: 3px; }
+      .mic-example { font-size: 9px; }
+      .rep-grid { margin-bottom: 7px; gap: 7px; }
+      .rep-field { gap: 3px; }
+      .rep-field label { font-size: 8px; }
+      .rep-field input { padding: 6px 3px; font-size: 18px; border-radius: 9px; }
+      .btn-save { padding: 8px; font-size: 10px; }
+      .history-list { max-height: 7dvh; margin-top: 6px; }
+      .h-item { padding: 6px 8px; font-size: 10px; }
+      .controls { gap: 8px; }
+      .btn-ctrl { padding: 10px; font-size: 11px; border-radius: 11px; }
+      .music-swap { font-size: 9px; }
+      .music-swap button { font-size: 9px; }
+    }
+
+    @media (max-width: 520px) {
+      .logo,
+      .voice-pill,
+      #volumeSlider { display: none; }
+      .brand-area { gap: 0; }
+      .site-nav a { padding: 7px 8px; font-size: 10px; }
+      .header-right { gap: 5px; }
+      .music-controls { gap: 8px; padding: 6px 9px; }
+    }
+
+    @media (max-height: 700px) {
+      .workout-meta,
+      .mic-example { display: none; }
+      .timer-wrap { width: clamp(135px, min(27vw, 32dvh), 225px); }
+      .card-title { margin-bottom: 7px; }
+      .mic-panel { margin-bottom: 7px; }
+      .history-list { max-height: 54px; }
+    }
+
+    @media (max-width: 719px) and (orientation: portrait) and (max-height: 700px) {
+      .history-list { display: none; }
+    }
+
+    @media (max-width: 719px) and (orientation: portrait) and (max-height: 650px) {
+      .timer-wrap { width: clamp(112px, 19dvh, 135px); }
+      .pill-icon,
+      .card-title,
+      .music-swap { display: none; }
+      .ex-pill { padding-block: 6px; }
+      .btn-done { padding: 9px; }
+      .mic-panel { grid-template-columns: 46px 1fr; padding: 7px; }
+      .mic-button { width: 42px; height: 42px; }
+    }
+
+    @media (max-height: 560px) {
+      header { padding-block: 7px; }
+      .voice-pill { display: none; }
+      main { padding-block: 6px; }
+      .workout-stage,
+      .side-panel { gap: 5px; }
+      .timer-wrap { width: clamp(126px, min(25vw, 33dvh), 185px); }
+      .timer-round-label { display: none; }
+      .ex-pill { padding-block: 6px; }
+      .pill-icon { display: none; }
+      .btn-done { padding: 9px; }
+      .side-panel .card { padding: 9px; }
+      .mic-panel { grid-template-columns: 46px 1fr; padding: 7px; }
+      .mic-button { width: 42px; height: 42px; }
+      .mic-status { min-height: 0; }
+      .rep-field input { padding-block: 5px; }
+      .history-list { display: none; }
+      .controls .btn-ctrl { padding: 9px; }
+      .music-swap { display: none; }
+      #endScreen { padding-block: 10px; }
+      .end-emoji { font-size: 30px; }
+      .end-history { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="brand-area">
+    <a class="logo" href="./index.html">CINDY</a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a class="active" href="./index.html">Workout</a>
+      <a href="./performance.html">Performance</a>
+      <a href="./privacy.html">Privacy</a>
+    </nav>
+  </div>
+  <div class="header-right">
+    <div class="voice-pill">
+      <div class="voice-dot" id="voiceDot"></div>
+      Voice
+    </div>
+    <div class="music-controls">
+      <button class="btn-icon" id="muteBtn" title="Toggle music">🎵</button>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.05" value="0.35">
+      <button class="btn-icon" id="nextTrackBtn" title="Next track">⏭</button>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main>
+
+  <section class="workout-stage" aria-label="Workout progress">
+
+  <div class="workout-meta" id="workoutDate"></div>
+
+  <!-- TIMER RING -->
+  <div class="timer-wrap">
+    <svg class="timer-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="ringGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%"   stop-color="#d7a86e"/>
+          <stop offset="50%"  stop-color="#c58f9f"/>
+          <stop offset="100%" stop-color="#8ca6a1"/>
+        </linearGradient>
+      </defs>
+      <circle class="ring-bg"       cx="150" cy="150" r="120"/>
+      <circle class="ring-glow"     cx="150" cy="150" r="120" id="ringGlow"/>
+      <circle class="ring-progress" cx="150" cy="150" r="120" id="ringProgress"/>
+    </svg>
+    <div class="timer-inner">
+      <div class="timer-time" id="timerDisplay">20:00</div>
+      <div class="timer-round-label">Round</div>
+      <div class="timer-round-num" id="roundNum">1</div>
+    </div>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status-badge" id="statusBadge">Ready to go</div>
+
+  <!-- ROUND RECIPE -->
+  <div class="exercise-track" id="exerciseTrack">
+    <div class="ex-pill" data-idx="0">
+      <span class="pill-check">✓</span>
+      <div class="pill-icon">🏋️</div>
+      <div class="pill-reps">5</div>
+      <div class="pill-name">Pull-ups</div>
+    </div>
+    <div class="ex-pill" data-idx="1">
+      <span class="pill-check">✓</span>
+      <div class="pill-icon">💪</div>
+      <div class="pill-reps">10</div>
+      <div class="pill-name">Push-ups</div>
+    </div>
+    <div class="ex-pill" data-idx="2">
+      <span class="pill-check">✓</span>
+      <div class="pill-icon">🦵</div>
+      <div class="pill-reps">15</div>
+      <div class="pill-name">Squats</div>
+    </div>
+  </div>
+
+  <!-- DONE BUTTON -->
+  <button class="btn-done" id="doneBtn" disabled>
+    ✓ &nbsp; Complete Round
+  </button>
+
+  </section>
+
+  <section class="side-panel" aria-label="Round setup and workout controls">
+
+  <!-- ROUND SETUP AND VOICE CONTROL -->
+  <div class="card">
+    <div class="card-title">Round setup</div>
+    <div class="rep-grid">
+      <div class="rep-field">
+        <label>Pull-ups</label>
+        <input type="number" id="configPullups" min="1" max="999" value="5">
+      </div>
+      <div class="rep-field">
+        <label>Push-ups</label>
+        <input type="number" id="configPushups" min="1" max="999" value="10">
+      </div>
+      <div class="rep-field">
+        <label>Squats</label>
+        <input type="number" id="configSquats" min="1" max="999" value="15">
+      </div>
+    </div>
+    <div class="config-note" id="configNote">Default Cindy is 5 / 10 / 15. Set it before Start; the recipe then stays locked.</div>
+    <div class="mic-panel">
+      <button class="mic-button" id="micBtn" type="button" aria-label="Enable voice round control" aria-pressed="false" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 15.25a3.75 3.75 0 0 0 3.75-3.75V5.75a3.75 3.75 0 0 0-7.5 0v5.75A3.75 3.75 0 0 0 12 15.25Zm-2.25-9.5a2.25 2.25 0 0 1 4.5 0v5.75a2.25 2.25 0 0 1-4.5 0V5.75Zm8.5 5.5a.75.75 0 0 0-1.5 0v.25a4.75 4.75 0 0 1-9.5 0v-.25a.75.75 0 0 0-1.5 0v.25a6.26 6.26 0 0 0 5.5 6.2v2.05H8.5a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-2.75V17.7a6.26 6.26 0 0 0 5.5-6.2v-.25Z"/>
+        </svg>
+      </button>
+      <div class="mic-copy">
+        <div class="mic-heading-row">
+          <div class="mic-heading">Voice round control</div>
+          <select class="mic-language" id="micLanguage" aria-label="Recognition language">
+            <option value="en-US">EN</option>
+            <option value="it-IT">IT</option>
+          </select>
+        </div>
+        <div class="mic-status" id="micStatus" aria-live="polite">Start the workout, then tap once to enable hands-free listening.</div>
+      </div>
+      <div class="mic-example">Keep it enabled and say “next round” or “prossimo round” after every complete set.</div>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button class="btn-ctrl btn-start" id="startBtn">▶ Start</button>
+    <button class="btn-ctrl btn-reset" id="resetBtn">↺ Reset</button>
+  </div>
+
+  <!-- MUSIC FILE SWAP -->
+  <div class="music-swap">
+    <span id="trackLabel">Now playing: Fitness Groove (1/3)</span>
+    <input type="file" id="musicFile" accept="audio/*" style="display:none">
+    <button onclick="document.getElementById('musicFile').click()">load your own MP3</button>
+  </div>
+
+  </section>
+
+</main>
+
+<!-- END SCREEN OVERLAY -->
+<div id="endScreen">
+  <div class="end-emoji">🔥</div>
+  <div class="end-title">Workout Complete</div>
+  <div class="end-score" id="endScore">0</div>
+  <div class="end-sublabel">rounds completed</div>
+  <div class="end-stats">
+    <div class="end-stat">
+      <div class="end-stat-val" id="endPullups">0</div>
+      <div class="end-stat-label">Pull-ups</div>
+    </div>
+    <div class="end-stat">
+      <div class="end-stat-val" id="endPushups">0</div>
+      <div class="end-stat-label">Push-ups</div>
+    </div>
+    <div class="end-stat">
+      <div class="end-stat-val" id="endSquats">0</div>
+      <div class="end-stat-label">Squats</div>
+    </div>
+  </div>
+  <div class="end-history" id="endHistory"></div>
+  <div class="end-actions">
+    <button class="btn-copy"    id="copyBtn">Copy Score</button>
+    <button class="btn-restart" id="performanceBtn">Progress</button>
+    <button class="btn-restart" id="restartBtn">New Workout</button>
+  </div>
+</div>
+
+<!-- BACKGROUND MUSIC (local playlist from /music) -->
+<audio id="bgMusic" preload="none"></audio>
+
+<script src="./storage.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════════
+// CINDY Workout Tracker — Pure Vanilla JS
+// Cindy = 20-min AMRAP: 5 Pull-ups → 10 Push-ups → 15 Squats
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const TOTAL   = 20 * 60;   // 1200 seconds
+const CIRC    = 2 * Math.PI * 120; // 753.98
+const EXES    = [
+  { name: 'Pull-ups',  short: 'pull-ups',  reps: 5  },
+  { name: 'Push-ups',  short: 'push-ups',  reps: 10 },
+  { name: 'Squats',    short: 'squats',    reps: 15 },
+];
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let S = freshState();
+
+function freshState() {
+  return {
+    status:       'idle',  // idle | countdown | running | paused | done
+    remaining:    TOTAL,
+    round:        1,
+    history:      [],
+    announced:    new Set(),
+    intervalId:   null,
+    countdownId:  null,
+    muted:        false,
+    startedAt:    null,
+    saved:        false,
+  };
+}
+
+// ── DOM ──────────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const timerDisplay = $('timerDisplay');
+const ringProgress = $('ringProgress');
+const ringGlow     = $('ringGlow');
+const roundNum     = $('roundNum');
+const statusBadge  = $('statusBadge');
+const doneBtn      = $('doneBtn');
+const startBtn     = $('startBtn');
+const resetBtn     = $('resetBtn');
+const historyList  = $('historyList');
+const endScreen    = $('endScreen');
+const bgMusic      = $('bgMusic');
+const volumeSlider = $('volumeSlider');
+const muteBtn      = $('muteBtn');
+const nextTrackBtn = $('nextTrackBtn');
+const trackLabel   = $('trackLabel');
+const voiceDot     = $('voiceDot');
+const musicFile    = $('musicFile');
+const micBtn       = $('micBtn');
+const micStatus    = $('micStatus');
+const micLanguage  = $('micLanguage');
+const pills        = document.querySelectorAll('.ex-pill');
+const pillReps     = document.querySelectorAll('.pill-reps');
+const configInputs = [$('configPullups'), $('configPushups'), $('configSquats')];
+const savedSettings = window.CindyStore ? window.CindyStore.getSettings() : {};
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+$('workoutDate').textContent = new Date().toLocaleDateString('en-US', {
+  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+});
+configInputs.forEach((input, index) => {
+  const key = ['pullups', 'pushups', 'squats'][index];
+  if (savedSettings.recipe?.[key]) input.value = savedSettings.recipe[key];
+});
+if (savedSettings.language) micLanguage.value = savedSettings.language;
+if (Number.isFinite(savedSettings.volume)) volumeSlider.value = savedSettings.volume;
+bgMusic.volume = parseFloat(volumeSlider.value);
+updateRing(TOTAL);
+syncWorkoutConfig();
+
+// ── UTILITIES ────────────────────────────────────────────────────────────────
+function fmt(s) {
+  return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+}
+
+function elapsedFmt() {
+  const e = TOTAL - S.remaining;
+  return `${String(Math.floor(e/60)).padStart(2,'0')}:${String(e%60).padStart(2,'0')}`;
+}
+
+function updateRing(remaining) {
+  const offset = CIRC * (1 - remaining / TOTAL);
+  ringProgress.style.strokeDashoffset = offset;
+  ringGlow.style.strokeDashoffset     = offset;
+
+  // Colour shift as time runs out
+  if (remaining <= 60) {
+    ringProgress.style.stroke = '#c97878';
+    ringGlow.style.stroke     = '#c97878';
+  } else if (remaining <= 120) {
+    ringProgress.style.stroke = '#d7a86e';
+    ringGlow.style.stroke     = '#d7a86e';
+  } else {
+    ringProgress.style.stroke = 'url(#ringGradient)';
+    ringGlow.style.stroke     = 'url(#ringGradient)';
+  }
+}
+
+function setStatus(text, cls) {
+  statusBadge.textContent = text;
+  statusBadge.className   = 'status-badge' + (cls ? ' ' + cls : '');
+}
+
+function renderPills() {
+  pills.forEach(pill => {
+    pill.classList.remove('active', 'done-ex');
+  });
+}
+
+function syncWorkoutConfig() {
+  configInputs.forEach((input, idx) => {
+    const reps = Math.min(999, Math.max(1, parseInt(input.value) || EXES[idx].reps));
+    input.value = reps;
+    EXES[idx].reps = reps;
+    pillReps[idx].textContent = reps;
+  });
+  window.CindyStore?.saveSettings({
+    recipe: { pullups: EXES[0].reps, pushups: EXES[1].reps, squats: EXES[2].reps },
+  });
+}
+
+function setConfigLocked(locked) {
+  configInputs.forEach(input => { input.disabled = locked; });
+  $('configNote').textContent = locked
+    ? `Locked for this workout: ${EXES.map(ex => ex.reps).join(' / ')}.`
+    : 'Default Cindy is 5 / 10 / 15. Set it before Start; the recipe then stays locked.';
+}
+
+configInputs.forEach(input => input.addEventListener('input', syncWorkoutConfig));
+
+// ── VOICE ────────────────────────────────────────────────────────────────────
+let _speaking = false;
+const _queue   = [];
+
+function speak(text, priority = false) {
+  if (!window.speechSynthesis) return;
+  if (priority) {
+    window.speechSynthesis.cancel();
+    _queue.length = 0;
+  }
+  _queue.push(text);
+  drainQueue();
+}
+
+function drainQueue() {
+  if (_speaking || !_queue.length) return;
+  const text = _queue.shift();
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate = 1.05; u.pitch = 1.05; u.volume = 1;
+  u.onstart = () => { _speaking = true;  voiceDot.classList.add('speaking'); };
+  u.onend   = () => { _speaking = false; voiceDot.classList.remove('speaking'); drainQueue(); };
+  u.onerror = () => { _speaking = false; voiceDot.classList.remove('speaking'); drainQueue(); };
+  window.speechSynthesis.speak(u);
+}
+
+function speakRoundRecipe() {
+  speak(`Round ${S.round}. ${EXES[0].reps} pull-ups, ${EXES[1].reps} push-ups, ${EXES[2].reps} squats.`);
+}
+
+// ── COUNTDOWN 3-2-1 ──────────────────────────────────────────────────────────
+function runCountdown(cb) {
+  setStatus('Get Ready…', '');
+  speak('Get ready!');
+  let n = 3;
+  S.countdownId = setInterval(() => {
+    speak(String(n));
+    n--;
+    if (n < 0) {
+      clearInterval(S.countdownId);
+      speak('Go!');
+      setTimeout(() => {
+        speakRoundRecipe();
+        cb();
+      }, 600);
+    }
+  }, 900);
+}
+
+// ── TIMER TICK ───────────────────────────────────────────────────────────────
+function tick() {
+  if (S.remaining <= 0) { finishWorkout(); return; }
+  S.remaining--;
+  timerDisplay.textContent = fmt(S.remaining);
+  updateRing(S.remaining);
+  checkCues();
+}
+
+function checkCues() {
+  const r = S.remaining;
+  const cues = [
+    [300, '5 minutes remaining. Keep pushing!'],
+    [120, '2 minutes remaining!'],
+    [60,  '1 minute remaining. Give it everything!'],
+    [30,  '30 seconds. Dig deep!'],
+    [10,  '10'], [9,'9'], [8,'8'], [7,'7'], [6,'6'],
+    [5,'5'], [4,'4'], [3,'3'], [2,'2'], [1,'1'],
+  ];
+  for (const [sec, msg] of cues) {
+    if (r === sec && !S.announced.has(sec)) {
+      S.announced.add(sec);
+      speak(msg);
+      return;
+    }
+  }
+}
+
+// ── COMPLETE ROUND ───────────────────────────────────────────────────────────
+function completeRound(source = 'manual') {
+  if (S.status !== 'running') return;
+
+  const completedRound = S.round;
+  const entry = { time: elapsedFmt(), round: completedRound, source };
+  S.history.push(entry);
+  S.round++;
+  roundNum.textContent = S.round;
+  addRoundHistoryItem(entry);
+  speak(`Round ${completedRound} complete. Start round ${S.round}.`, true);
+
+  // Brief cooldown on button to prevent double-tap
+  doneBtn.disabled = true;
+  setTimeout(() => { if (S.status === 'running') doneBtn.disabled = false; }, 350);
+
+  return entry;
+}
+
+// ── START / PAUSE / RESUME ───────────────────────────────────────────────────
+startBtn.addEventListener('click', () => {
+  if (S.status === 'idle') {
+    syncWorkoutConfig();
+    setConfigLocked(true);
+    S.status = 'countdown';
+    S.startedAt = new Date().toISOString();
+    startBtn.disabled = true;
+    runCountdown(() => {
+      S.status = 'running';
+      S.intervalId = setInterval(tick, 1000);
+      startMusic();
+      setStatus('Running', 'running');
+      startBtn.disabled = false;
+      startBtn.textContent = '⏸ Pause';
+      doneBtn.disabled = false;
+      updateMicAvailability();
+      renderPills();
+    });
+  } else if (S.status === 'running') {
+    pauseWorkout();
+  } else if (S.status === 'paused') {
+    resumeWorkout();
+  }
+});
+
+resetBtn.addEventListener('click', resetWorkout);
+doneBtn.addEventListener('click', () => completeRound('manual'));
+
+function pauseWorkout() {
+  S.status = 'paused';
+  clearInterval(S.intervalId);
+  stopRoundListening(false);
+  bgMusic.pause();
+  setStatus('Paused', 'paused');
+  startBtn.textContent = '▶ Resume';
+  doneBtn.disabled = true;
+  updateMicAvailability();
+  speak('Workout paused.');
+  renderPills();
+}
+
+function resumeWorkout() {
+  S.status = 'running';
+  S.intervalId = setInterval(tick, 1000);
+  bgMusic.play().catch(() => {});
+  setStatus('Running', 'running');
+  startBtn.textContent = '⏸ Pause';
+  doneBtn.disabled = false;
+  updateMicAvailability();
+  startRoundListening();
+  speak('Go!');
+  renderPills();
+}
+
+function resetWorkout() {
+  clearInterval(S.intervalId);
+  clearInterval(S.countdownId);
+  window.speechSynthesis && window.speechSynthesis.cancel();
+  stopRoundListening(true);
+  bgMusic.pause();
+  bgMusic.currentTime = 0;
+
+  const wasMuted = S.muted;
+  S = freshState();
+  S.muted = wasMuted;
+
+  timerDisplay.textContent = '20:00';
+  roundNum.textContent     = '1';
+  updateRing(TOTAL);
+  setStatus('Ready to go', '');
+  startBtn.textContent  = '▶ Start';
+  startBtn.disabled     = false;
+  doneBtn.disabled      = true;
+  setConfigLocked(false);
+  updateMicAvailability();
+  historyList.innerHTML = '';
+  endScreen.classList.remove('visible');
+  pills.forEach(p => p.classList.remove('active','done-ex'));
+}
+
+// ── FINISH ───────────────────────────────────────────────────────────────────
+function finishWorkout() {
+  clearInterval(S.intervalId);
+  S.status = 'done';
+  bgMusic.pause();
+  timerDisplay.textContent = '00:00';
+  updateRing(0);
+  setStatus('Done! 🔥', 'done');
+  doneBtn.disabled  = true;
+  startBtn.disabled = true;
+  stopRoundListening(true);
+  updateMicAvailability();
+  renderPills();
+
+  const completedRounds = S.round - 1;
+  saveCompletedWorkout(completedRounds);
+
+  speak(`Time's up! Outstanding effort! You completed ${completedRounds} rounds. Amazing work!`, true);
+  launchParticles();
+  setTimeout(() => showEndScreen(completedRounds), 2200);
+}
+
+function saveCompletedWorkout(rounds) {
+  if (!window.CindyStore || S.saved) return;
+  const recipe = { pullups: EXES[0].reps, pushups: EXES[1].reps, squats: EXES[2].reps };
+  const repsPerRound = recipe.pullups + recipe.pushups + recipe.squats;
+  const completedAt = new Date().toISOString();
+  window.CindyStore.saveSession({
+    id: `${completedAt}-${Math.random().toString(36).slice(2, 8)}`,
+    startedAt: S.startedAt,
+    completedAt,
+    durationSeconds: TOTAL,
+    rounds,
+    recipe,
+    totalReps: rounds * repsPerRound,
+    roundLog: S.history.map(item => ({ time: item.time, round: item.round, source: item.source })),
+  });
+  S.saved = true;
+}
+
+function showEndScreen(rounds) {
+  const totalPullups = rounds * EXES[0].reps;
+  const totalPushups = rounds * EXES[1].reps;
+  const totalSquats  = rounds * EXES[2].reps;
+
+  $('endScore').textContent   = rounds;
+  $('endPullups').textContent = totalPullups;
+  $('endPushups').textContent = totalPushups;
+  $('endSquats').textContent  = totalSquats;
+
+  const eh = $('endHistory');
+  eh.innerHTML = S.history.length
+    ? S.history.map(h => `
+        <div class="h-item">
+          <span class="h-time">${h.time}</span>
+          <span class="h-round">R${h.round}</span>
+          <span class="h-reps">Round completed</span>
+          ${h.source === 'voice' ? '<span class="h-source" title="Voice command">●</span>' : ''}
+        </div>`).join('')
+    : '<div style="color:var(--muted);font-size:11px;text-align:center;padding:6px 0;">No rounds completed</div>';
+
+  endScreen.classList.add('visible');
+}
+
+// ── ROUND HISTORY ────────────────────────────────────────────────────────────
+function addRoundHistoryItem(entry) {
+  const item = document.createElement('div');
+  item.className = 'h-item';
+  item.innerHTML = `
+    <span class="h-time">${entry.time}</span>
+    <span class="h-round">R${entry.round}</span>
+    <span class="h-reps">Round completed</span>
+    ${entry.source === 'voice' ? '<span class="h-source" title="Voice command">●</span>' : ''}`;
+  historyList.prepend(item);
+}
+
+// ── HANDS-FREE ROUND CONTROL ─────────────────────────────────────────────────
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = SpeechRecognition ? new SpeechRecognition() : null;
+let micListening = false;
+let micArmed = false;
+let micRestartId = null;
+
+function isNextRoundCommand(transcript) {
+  const command = transcript.toLowerCase().replace(/[-–—]/g, ' ').replace(/[^a-zà-ÿ\s]/gi, ' ').replace(/\s+/g, ' ').trim();
+  return /\bnext\s+(?:the\s+)?round\b/i.test(command)
+    || /\b(?:prossimo|prossima)\s+(?:round|giro)\b/i.test(command);
+}
+
+function setMicStatus(text, state = '') {
+  micStatus.textContent = text;
+  micStatus.className = 'mic-status' + (state ? ` ${state}` : '');
+}
+
+function updateMicAvailability() {
+  if (!recognition) return;
+  micBtn.disabled = S.status !== 'running';
+  if (S.status === 'idle') {
+    setMicStatus('Start the workout, then tap once to enable hands-free listening.');
+  } else if (S.status === 'running' && !micArmed) {
+    setMicStatus('Tap once to enable hands-free round control.');
+  } else if (S.status === 'paused') {
+    setMicStatus('Voice control paused with the workout.');
+  } else if (S.status === 'done') {
+    setMicStatus('Workout complete.', 'success');
+  }
+}
+
+function setListeningVisual(active) {
+  micBtn.classList.toggle('listening', active);
+  micBtn.setAttribute('aria-pressed', String(micArmed));
+  bgMusic.volume = parseFloat(volumeSlider.value) * (micArmed ? .25 : 1);
+}
+
+function startRoundListening() {
+  if (!recognition || !micArmed || micListening || S.status !== 'running') return;
+  clearTimeout(micRestartId);
+  recognition.lang = micLanguage.value;
+  try {
+    recognition.start();
+  } catch (error) {
+    if (error.name !== 'InvalidStateError') {
+      micArmed = false;
+      setListeningVisual(false);
+      setMicStatus('Could not start voice control. Try again.', 'error');
+    }
+  }
+}
+
+function stopRoundListening(disarm = false) {
+  clearTimeout(micRestartId);
+  if (disarm) micArmed = false;
+  if (recognition && micListening) recognition.stop();
+  if (disarm || !micListening) setListeningVisual(false);
+}
+
+if (recognition) {
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 3;
+
+  micBtn.addEventListener('click', () => {
+    if (S.status !== 'running') return;
+    if (micArmed) {
+      stopRoundListening(true);
+      setMicStatus('Voice round control off. Tap to enable it again.');
+      return;
+    }
+
+    window.speechSynthesis?.cancel();
+    _queue.length = 0;
+    _speaking = false;
+    voiceDot.classList.remove('speaking');
+    micArmed = true;
+    setListeningVisual(true);
+    setMicStatus('Always listening. Say “next round” or “prossimo round”.', 'listening');
+    startRoundListening();
+  });
+
+  recognition.onstart = () => {
+    micListening = true;
+    setListeningVisual(true);
+    setMicStatus('Always listening. Say “next round” or “prossimo round”.', 'listening');
+    navigator.vibrate?.(40);
+  };
+
+  recognition.onresult = event => {
+    let transcript = '';
+
+    for (let resultIdx = event.resultIndex; resultIdx < event.results.length; resultIdx++) {
+      for (let alternativeIdx = 0; alternativeIdx < event.results[resultIdx].length; alternativeIdx++) {
+        transcript = event.results[resultIdx][alternativeIdx].transcript;
+        if (isNextRoundCommand(transcript)) break;
+      }
+      if (isNextRoundCommand(transcript)) break;
+    }
+
+    if (isNextRoundCommand(transcript)) {
+      const entry = completeRound('voice');
+      if (entry) {
+        setMicStatus(`Round ${entry.round} logged. Listening for the next one.`, 'success');
+        navigator.vibrate?.([35, 45, 35]);
+      }
+    } else {
+      setMicStatus('Still listening. Say exactly “next round” or “prossimo round”.', 'listening');
+    }
+  };
+
+  recognition.onerror = event => {
+    const messages = {
+      'not-allowed': 'Microphone access was blocked. Allow it in browser settings.',
+      'audio-capture': 'No microphone was found.',
+      'no-speech': 'No speech heard. Voice control is still listening.',
+      network: 'Speech recognition needs a network connection.',
+    };
+    if (event.error === 'not-allowed' || event.error === 'audio-capture' || event.error === 'network') {
+      micArmed = false;
+      setListeningVisual(false);
+    }
+    if (event.error !== 'aborted') {
+      setMicStatus(messages[event.error] || 'Voice recognition failed. Please try again.', 'error');
+    }
+  };
+
+  recognition.onend = () => {
+    micListening = false;
+    if (micArmed && S.status === 'running') {
+      micRestartId = setTimeout(startRoundListening, 250);
+    } else {
+      setListeningVisual(false);
+    }
+  };
+} else {
+  micBtn.disabled = true;
+micLanguage.disabled = true;
+  setMicStatus('Voice input requires Chrome or Edge on localhost or HTTPS.', 'error');
+}
+
+// ── MUSIC ────────────────────────────────────────────────────────────────────
+const PLAYLIST = [
+  { src: 'music/joyinsound-fitness-groove-403399.mp3',        name: 'Fitness Groove'   },
+  { src: 'music/soundsurfer-workout-468928.mp3',              name: 'Workout'          },
+  { src: 'music/viacheslavstarostin-sport-workout-gym-music-408129.mp3', name: 'Sport Workout Gym' },
+];
+let trackIndex  = 0;
+let customTrack = false;
+
+function updateTrackLabel() {
+  trackLabel.textContent = customTrack
+    ? 'Custom track · ⏭ returns to the playlist'
+    : `Now playing: ${PLAYLIST[trackIndex].name} (${trackIndex + 1}/${PLAYLIST.length})`;
+}
+
+function loadTrack(src) {
+  bgMusic.src = src;
+  bgMusic.load();
+}
+
+function loadDefaultTrack() {
+  customTrack = false;
+  loadTrack(PLAYLIST[trackIndex].src);
+  updateTrackLabel();
+}
+
+function playNextTrack() {
+  if (customTrack) {
+    loadDefaultTrack();
+  } else {
+    trackIndex = (trackIndex + 1) % PLAYLIST.length;
+    loadTrack(PLAYLIST[trackIndex].src);
+    updateTrackLabel();
+  }
+  bgMusic.play().catch(() => {});
+}
+
+function startMusic() {
+  if (S.muted) return;
+  bgMusic.play().catch(() => {
+    // Browser blocked autoplay — user can tap mute/unmute to unlock
+  });
+}
+
+loadDefaultTrack();
+
+volumeSlider.addEventListener('input', e => {
+  bgMusic.volume = parseFloat(e.target.value) * (micArmed ? .25 : 1);
+  window.CindyStore?.saveSettings({ volume: parseFloat(e.target.value) });
+});
+
+micLanguage.addEventListener('change', () => {
+  window.CindyStore?.saveSettings({ language: micLanguage.value });
+  if (micArmed) {
+    stopRoundListening(false);
+    setTimeout(startRoundListening, 300);
+  }
+});
+
+muteBtn.addEventListener('click', () => {
+  S.muted = !S.muted;
+  bgMusic.muted = S.muted;
+  muteBtn.textContent  = S.muted ? '🔇' : '🎵';
+  muteBtn.style.opacity = S.muted ? '.4' : '.7';
+});
+
+nextTrackBtn.addEventListener('click', playNextTrack);
+
+bgMusic.addEventListener('ended', playNextTrack);
+
+musicFile.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  customTrack = true;
+  loadTrack(URL.createObjectURL(file));
+  updateTrackLabel();
+  if (S.status === 'running') bgMusic.play().catch(() => {});
+});
+
+// ── END ACTIONS ──────────────────────────────────────────────────────────────
+$('copyBtn').addEventListener('click', () => {
+  const rounds  = $('endScore').textContent;
+  const pullups = $('endPullups').textContent;
+  const pushups = $('endPushups').textContent;
+  const squats  = $('endSquats').textContent;
+  const date    = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  const txt     = `CINDY — ${date}\nRounds: ${rounds}\nPull-ups: ${pullups}  |  Push-ups: ${pushups}  |  Squats: ${squats}\n#Cindy #CrossFit`;
+  navigator.clipboard.writeText(txt).then(() => {
+    const b = $('copyBtn');
+    b.textContent = '✓ Copied!';
+    setTimeout(() => b.textContent = 'Copy Score', 2000);
+  }).catch(() => alert(txt));
+});
+
+$('restartBtn').addEventListener('click', resetWorkout);
+$('performanceBtn').addEventListener('click', () => { window.location.href = './performance.html'; });
+
+// ── PARTICLES ────────────────────────────────────────────────────────────────
+function launchParticles() {
+  const colors = ['#d7a86e','#8ca6a1','#c58f9f','#79b59a','#b8c8c3','#e2c9a8'];
+  for (let i = 0; i < 80; i++) {
+    setTimeout(() => {
+      const p  = document.createElement('div');
+      const sz = 4 + Math.random() * 7;
+      p.className = 'particle';
+      p.style.cssText = `
+        left:${Math.random()*100}vw;
+        top:-12px;
+        width:${sz}px; height:${sz}px;
+        background:${colors[i % colors.length]};
+        animation-duration:${2.2 + Math.random()*2}s;
+      `;
+      document.body.appendChild(p);
+      setTimeout(() => p.remove(), 5000);
+    }, i * 40);
+  }
+}
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+</script>
+</body>
+</html>

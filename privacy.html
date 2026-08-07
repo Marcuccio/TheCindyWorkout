@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d1517">
+  <title>Privacy | Cindy Workout</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./pages.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="logo" href="./index.html">CINDY</a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="./index.html">Workout</a>
+      <a href="./performance.html">Performance</a>
+      <a class="active" href="./privacy.html">Privacy</a>
+    </nav>
+  </header>
+
+  <main class="page">
+    <p class="eyebrow">Privacy by architecture</p>
+    <h1>Your workout data stays with you.</h1>
+    <p class="lead">Cindy Workout is a static application. It has no user accounts, application backend, database, advertising, or analytics.</p>
+
+    <section class="privacy-grid">
+      <article class="card privacy-card">
+        <div class="privacy-icon">01</div>
+        <h2>Local storage only</h2>
+        <p>Completed sessions and your preferred rep recipe are stored in your browser's <strong>localStorage</strong>. The app never sends that performance history to an application server.</p>
+      </article>
+
+      <article class="card privacy-card">
+        <div class="privacy-icon">02</div>
+        <h2>No tracking</h2>
+        <p>There are no analytics scripts, cookies, account identifiers, ad networks, or third-party fonts. GitHub Pages only serves the static files required to run the app. Like any web host, GitHub may process ordinary request metadata under its own privacy policy, but it never receives the workout history stored by this app.</p>
+      </article>
+
+      <article class="card privacy-card">
+        <div class="privacy-icon">03</div>
+        <h2>Local music</h2>
+        <p>The default tracks are included with the application. A personal MP3 selected from your device is represented by a temporary browser URL and is not uploaded by this app.</p>
+      </article>
+
+      <article class="card privacy-card">
+        <div class="privacy-icon">04</div>
+        <h2>You control deletion</h2>
+        <p>Clear performance history from the Performance page, erase all app data below, or clear site data in browser settings. There is no remote copy for us to retain.</p>
+      </article>
+
+      <article class="card privacy-card wide notice">
+        <h2>Important microphone note</h2>
+        <p>The app uses the browser's Web Speech API to recognize “next round.” The app itself does not record or store microphone audio. However, browsers such as Chrome or Edge may process speech through services operated by their vendor. This behavior is controlled by your browser, not by this application. You can avoid it entirely by leaving voice control disabled and using the Complete Round button.</p>
+      </article>
+
+      <article class="card privacy-card wide">
+        <h2>Exactly what is saved</h2>
+        <ul>
+          <li>Workout completion date and time</li>
+          <li>Completed rounds and calculated rep totals</li>
+          <li>The pull-up, push-up, and squat recipe used</li>
+          <li>Round timestamps and whether a round was logged by button or voice</li>
+          <li>Local preferences such as volume, language, and rep recipe</li>
+        </ul>
+        <div class="actions">
+          <button class="button danger" id="clearAllBtn" type="button">Erase all local app data</button>
+          <a class="button" href="./performance.html">Review saved performance</a>
+        </div>
+        <p id="clearStatus" aria-live="polite"></p>
+      </article>
+    </section>
+  </main>
+
+  <script src="./storage.js"></script>
+  <script>
+    document.getElementById('clearAllBtn').addEventListener('click', () => {
+      if (!confirm('Erase workout history and preferences from this browser?')) return;
+      window.CindyStore.clearAll();
+      document.getElementById('clearStatus').textContent = 'All Cindy Workout data has been erased from this browser.';
+    });
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+  </script>
+</body>
+</html>
