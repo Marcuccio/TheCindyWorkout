@@ -32,14 +32,6 @@ Modifica i testi nella colonna "Testo attuale", poi chiedi di aggiornarli nel co
 | 23 | Ripresa               | Go!                                                                    |
 | 24 | Fine workout          | Time's up! Outstanding effort! You completed {N} rounds. Amazing work! |
 
-## Comandi riconosciuti dal microfono
-
-- `next round`
-- `prossimo round`
-- `prossimo giro`
-
-Il microfono si attiva una volta sola e resta in ascolto durante il workout. Questi sono comandi in ingresso e non vengono pronunciati dall'app.
-
 ## Audio registrato
 
 Le clip ricavate dalla registrazione ElevenLabs sono in `voice/`. Il file `voice/manifest.json` contiene testo, timestamp e durata di ogni taglio.

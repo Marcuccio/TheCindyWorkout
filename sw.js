@@ -1,4 +1,4 @@
-const CACHE = 'cindy-workout-v6';
+const CACHE = 'cindy-workout-v9';
 const SHELL = [
   './',
   './index.html',
@@ -6,6 +6,7 @@ const SHELL = [
   './privacy.html',
   './pages.css',
   './storage.js',
+  './scoring.js',
   './install-prompt.css',
   './install-prompt.js',
   './manifest.webmanifest',

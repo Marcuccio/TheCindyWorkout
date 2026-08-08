@@ -143,7 +143,8 @@
     }
     .btn-icon:hover { opacity: 1; }
 
-    .shortcut-button {
+    .shortcut-button,
+    .fullscreen-button {
       width: 34px;
       height: 34px;
       display: grid;
@@ -158,12 +159,19 @@
       cursor: pointer;
       transition: color .2s, border-color .2s, background .2s, transform .2s;
     }
-    .shortcut-button:hover {
+    .shortcut-button:hover,
+    .fullscreen-button:hover {
       color: var(--text);
       border-color: rgba(140,166,161,.35);
       background: rgba(140,166,161,.1);
       transform: translateY(-1px);
     }
+    .fullscreen-button[aria-pressed="true"] {
+      color: var(--green);
+      border-color: rgba(121,181,154,.35);
+      background: rgba(121,181,154,.1);
+    }
+    .fullscreen-button[hidden] { display: none; }
 
     .shortcut-dialog {
       width: min(430px, calc(100% - 28px));
@@ -423,8 +431,8 @@
 
     /* ── DONE BUTTON ── */
     .btn-done {
-      width: 100%; padding: clamp(12px, 1.8dvh, 18px);
-      font-size: 15px; font-weight: 800;
+      width: 100%; min-height: 64px; padding: clamp(12px, 1.8dvh, 18px);
+      font-size: 16px; font-weight: 800;
       letter-spacing: 2px; text-transform: uppercase;
       border: none; border-radius: 16px;
       cursor: pointer;
@@ -453,6 +461,16 @@
       opacity: .25; cursor: not-allowed;
       transform: none; box-shadow: none;
     }
+    .done-main { display: block; }
+    .done-hint {
+      display: block;
+      margin-top: 4px;
+      color: rgba(255,255,255,.7);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: none;
+    }
 
     /* ── CARDS ── */
     .card {
@@ -475,77 +493,6 @@
       display: inline-block; width: 18px; height: 2px;
       background: linear-gradient(to right, var(--orange), var(--purple));
       border-radius: 1px;
-    }
-
-    /* ── REP LOGGER ── */
-    .mic-panel {
-      display: grid;
-      grid-template-columns: 72px 1fr;
-      gap: 14px;
-      align-items: center;
-      padding: clamp(9px, 1.4dvh, 14px);
-      margin-bottom: clamp(8px, 1.5dvh, 16px);
-      border: 1px solid rgba(140,166,161,.22);
-      border-radius: 16px;
-      background: linear-gradient(135deg, rgba(140,166,161,.09), rgba(215,168,110,.05));
-    }
-
-    .mic-button {
-      width: 64px; height: 64px;
-      display: grid; place-items: center;
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--orange), var(--pink), var(--purple));
-      color: white;
-      cursor: pointer;
-      box-shadow: 0 7px 26px rgba(140,166,161,.2);
-      transition: transform .2s, box-shadow .2s, opacity .2s;
-      position: relative;
-    }
-    .mic-button svg { width: 26px; height: 26px; fill: currentColor; position: relative; z-index: 1; }
-    .mic-button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 34px rgba(140,166,161,.3); }
-    .mic-button:disabled { opacity: .32; cursor: not-allowed; box-shadow: none; }
-    .mic-button.listening { animation: micPulse 1.25s ease-in-out infinite; }
-    .mic-button.listening::before,
-    .mic-button.listening::after {
-      content: '';
-      position: absolute; inset: -7px;
-      border: 1px solid rgba(197,143,159,.55);
-      border-radius: 50%;
-      animation: micWave 1.4s ease-out infinite;
-    }
-    .mic-button.listening::after { animation-delay: .55s; }
-    @keyframes micPulse { 50% { transform: scale(.94); } }
-    @keyframes micWave { to { opacity: 0; transform: scale(1.3); } }
-
-    .mic-copy { min-width: 0; }
-    .mic-heading-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .mic-heading { font-size: 12px; font-weight: 800; letter-spacing: .5px; }
-    .mic-language {
-      color: var(--muted);
-      background: rgba(8,8,15,.5);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 4px 6px;
-      font: 600 10px 'Inter', sans-serif;
-      outline: none;
-    }
-    .mic-status {
-      margin-top: 5px;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.45;
-      min-height: 32px;
-    }
-    .mic-status.listening { color: #f9a8d4; }
-    .mic-status.success { color: var(--green); }
-    .mic-status.error { color: #fb7185; }
-    .mic-example {
-      grid-column: 1 / -1;
-      color: rgba(240,240,248,.3);
-      font-size: 10px;
-      line-height: 1.45;
-      padding-top: 1px;
     }
 
     .rep-grid {
@@ -664,7 +611,6 @@
     .h-round { color: var(--purple); font-size: 10px; font-weight: 700; letter-spacing: 1px; }
     .h-reps { flex: 1; color: var(--text); }
     .h-reps strong { color: var(--orange); }
-    .h-source { color: var(--purple); font-size: 11px; }
 
     /* ── CONTROLS ── */
     .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
@@ -735,6 +681,24 @@
     @keyframes countUp { from{transform:scale(.6);opacity:0} to{transform:scale(1);opacity:1} }
 
     .end-sublabel { color: var(--muted); font-size: 12px; letter-spacing: 3px; text-transform: uppercase; }
+
+    .end-level {
+      width: 100%; max-width: 360px;
+      padding: clamp(9px, 1.8dvh, 14px);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: var(--surface);
+      text-align: center;
+    }
+    .end-level-name {
+      color: var(--green);
+      font-size: 18px; font-weight: 900;
+      letter-spacing: 1.5px; text-transform: uppercase;
+    }
+    .end-level-detail,
+    .end-level-target { margin-top: 4px; font-size: 10px; line-height: 1.4; }
+    .end-level-detail { color: var(--muted); }
+    .end-level-target { color: var(--text); font-weight: 700; }
 
     .end-stats {
       display: grid; grid-template-columns: repeat(3,1fr);
@@ -830,14 +794,9 @@
       .status-badge { padding: 4px 13px; font-size: 9px; }
       .ex-pill { border-radius: 13px; gap: 2px; }
       .pill-name { font-size: 9px; }
-      .btn-done { border-radius: 12px; font-size: 12px; }
+      .btn-done { border-radius: 15px; font-size: 13px; }
 
       .side-panel .card { padding: clamp(9px, 1.3dvh, 13px); }
-      .mic-panel { grid-template-columns: 52px 1fr; gap: 9px; border-radius: 13px; }
-      .mic-button { width: 48px; height: 48px; }
-      .mic-button svg { width: 21px; height: 21px; }
-      .mic-status { min-height: 0; font-size: 10px; margin-top: 3px; }
-      .mic-example { font-size: 9px; }
       .rep-grid { margin-bottom: 7px; gap: 7px; }
       .wake-panel { padding: 7px 9px; margin-bottom: 7px; }
       .wake-status { font-size: 8px; }
@@ -851,6 +810,28 @@
       .btn-ctrl { padding: 10px; font-size: 11px; border-radius: 11px; }
       .music-swap { font-size: 9px; }
       .music-swap button { font-size: 9px; }
+
+      body.workout-active main { gap: 6px; }
+      body.workout-active .workout-stage {
+        flex: 1 1 auto;
+        justify-content: space-between;
+        min-height: 0;
+      }
+      body.workout-active .timer-wrap { width: clamp(168px, 28dvh, 235px); }
+      body.workout-active .btn-done {
+        min-height: clamp(74px, 11dvh, 98px);
+        padding: 14px;
+        border-radius: 20px;
+        font-size: clamp(17px, 4.8vw, 22px);
+        letter-spacing: 2.5px;
+        box-shadow: 0 12px 40px rgba(140,166,161,.3);
+      }
+      body.workout-active .done-hint { margin-top: 7px; font-size: 10px; }
+      body.workout-active .side-panel { flex: 0 0 auto; }
+      body.workout-active .side-panel .card { flex: 0 0 auto; padding: 7px 9px; }
+      body.workout-active .round-config,
+      body.workout-active .history-list { display: none; }
+      body.workout-active .wake-panel { margin: 0; }
     }
 
     @media (max-width: 520px) {
@@ -861,7 +842,8 @@
       .site-nav a { padding: 7px 8px; font-size: 10px; }
       .header-right { gap: 5px; }
       .music-controls { gap: 8px; padding: 6px 9px; }
-      .shortcut-button { width: 32px; height: 32px; }
+      .shortcut-button { display: none; }
+      .fullscreen-button { width: 32px; height: 32px; }
     }
 
     @media (max-width: 360px) {
@@ -870,15 +852,13 @@
       .site-nav a { padding: 6px 5px; font-size: 9px; }
       .header-right { gap: 3px; }
       .music-controls { gap: 5px; padding: 5px 6px; }
-      .shortcut-button { width: 28px; height: 28px; }
+      .fullscreen-button { width: 28px; height: 28px; }
     }
 
     @media (max-height: 700px) {
-      .workout-meta,
-      .mic-example { display: none; }
+      .workout-meta { display: none; }
       .timer-wrap { width: clamp(135px, min(27vw, 32dvh), 225px); }
       .card-title { margin-bottom: 7px; }
-      .mic-panel { margin-bottom: 7px; }
       .history-list { max-height: 54px; }
     }
 
@@ -893,8 +873,6 @@
       .music-swap { display: none; }
       .ex-pill { padding-block: 6px; }
       .btn-done { padding: 9px; }
-      .mic-panel { grid-template-columns: 46px 1fr; padding: 7px; }
-      .mic-button { width: 42px; height: 42px; }
       .wake-panel { padding-block: 6px; }
     }
 
@@ -910,9 +888,6 @@
       .pill-icon { display: none; }
       .btn-done { padding: 9px; }
       .side-panel .card { padding: 9px; }
-      .mic-panel { grid-template-columns: 46px 1fr; padding: 7px; }
-      .mic-button { width: 42px; height: 42px; }
-      .mic-status { min-height: 0; }
       .rep-field input { padding-block: 5px; }
       .history-list { display: none; }
       .controls .btn-ctrl { padding: 9px; }
@@ -940,10 +915,11 @@
     </nav>
   </div>
   <div class="header-right">
+    <button class="fullscreen-button" id="fullscreenBtn" type="button" title="Toggle fullscreen (F)" aria-label="Enter fullscreen" aria-pressed="false">⛶</button>
     <button class="shortcut-button" id="shortcutBtn" type="button" title="Keyboard shortcuts (?)" aria-label="Show keyboard shortcuts">?</button>
     <div class="voice-pill">
       <div class="voice-dot" id="voiceDot"></div>
-      Voice
+      Coach
     </div>
     <div class="music-controls">
       <button class="btn-icon" id="muteBtn" title="Toggle music">🎵</button>
@@ -966,9 +942,9 @@
     <div class="shortcut-row"><div class="shortcut-keys"><kbd>P</kbd></div><div class="shortcut-label">Pause the workout</div></div>
     <div class="shortcut-row"><div class="shortcut-keys"><kbd>R</kbd></div><div class="shortcut-label">Resume the workout</div></div>
     <div class="shortcut-row"><div class="shortcut-keys"><kbd>S</kbd></div><div class="shortcut-label">Start the workout</div></div>
-    <div class="shortcut-row"><div class="shortcut-keys"><kbd>V</kbd></div><div class="shortcut-label">Toggle voice round control</div></div>
     <div class="shortcut-row"><div class="shortcut-keys"><kbd>M</kbd></div><div class="shortcut-label">Mute or unmute music</div></div>
     <div class="shortcut-row"><div class="shortcut-keys"><kbd>N</kbd></div><div class="shortcut-label">Play the next music track</div></div>
+    <div class="shortcut-row"><div class="shortcut-keys"><kbd>F</kbd></div><div class="shortcut-label">Enter or exit fullscreen</div></div>
     <div class="shortcut-row"><div class="shortcut-keys"><kbd>?</kbd></div><div class="shortcut-label">Open or close this guide</div></div>
     <div class="shortcut-row"><div class="shortcut-keys"><kbd>Esc</kbd></div><div class="shortcut-label">Close this guide</div></div>
   </div>
@@ -1029,17 +1005,18 @@
 
   <!-- DONE BUTTON -->
   <button class="btn-done" id="doneBtn" disabled>
-    ✓ &nbsp; Complete Round
+    <span class="done-main">✓ &nbsp; Complete Round</span>
+    <span class="done-hint">Tap after completing the full set</span>
   </button>
 
   </section>
 
   <section class="side-panel" aria-label="Round setup and workout controls">
 
-  <!-- ROUND SETUP AND VOICE CONTROL -->
+  <!-- ROUND SETUP -->
   <div class="card">
-    <div class="card-title">Round setup</div>
-    <div class="rep-grid">
+    <div class="card-title round-config">Round setup</div>
+    <div class="rep-grid round-config">
       <div class="rep-field">
         <label>Pull-ups</label>
         <input type="number" id="configPullups" min="1" max="999" value="5">
@@ -1053,7 +1030,7 @@
         <input type="number" id="configSquats" min="1" max="999" value="15">
       </div>
     </div>
-    <div class="config-note" id="configNote">Default Cindy is 5 / 10 / 15. Set it before Start; the recipe then stays locked.</div>
+    <div class="config-note round-config" id="configNote">Default Cindy is 5 / 10 / 15. Set it before Start; the recipe then stays locked.</div>
     <div class="wake-panel" id="wakePanel">
       <div class="wake-copy">
         <span class="wake-dot" aria-hidden="true"></span>
@@ -1063,24 +1040,6 @@
         </div>
       </div>
       <button class="wake-toggle" id="wakeToggle" type="button" aria-pressed="true">AUTO</button>
-    </div>
-    <div class="mic-panel">
-      <button class="mic-button" id="micBtn" type="button" aria-label="Enable voice round control" aria-pressed="false" disabled>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 15.25a3.75 3.75 0 0 0 3.75-3.75V5.75a3.75 3.75 0 0 0-7.5 0v5.75A3.75 3.75 0 0 0 12 15.25Zm-2.25-9.5a2.25 2.25 0 0 1 4.5 0v5.75a2.25 2.25 0 0 1-4.5 0V5.75Zm8.5 5.5a.75.75 0 0 0-1.5 0v.25a4.75 4.75 0 0 1-9.5 0v-.25a.75.75 0 0 0-1.5 0v.25a6.26 6.26 0 0 0 5.5 6.2v2.05H8.5a.75.75 0 0 0 0 1.5h7a.75.75 0 0 0 0-1.5h-2.75V17.7a6.26 6.26 0 0 0 5.5-6.2v-.25Z"/>
-        </svg>
-      </button>
-      <div class="mic-copy">
-        <div class="mic-heading-row">
-          <div class="mic-heading">Voice round control</div>
-          <select class="mic-language" id="micLanguage" aria-label="Recognition language">
-            <option value="en-US">EN</option>
-            <option value="it-IT">IT</option>
-          </select>
-        </div>
-        <div class="mic-status" id="micStatus" aria-live="polite">Start the workout, then tap once to enable hands-free listening.</div>
-      </div>
-      <div class="mic-example">Keep it enabled and say “next round” or “prossimo round” after every complete set.</div>
     </div>
     <div class="history-list" id="historyList"></div>
   </div>
@@ -1108,6 +1067,11 @@
   <div class="end-title">Workout Complete</div>
   <div class="end-score" id="endScore">0</div>
   <div class="end-sublabel">rounds completed</div>
+  <div class="end-level">
+    <div class="end-level-name" id="endLevel">Building</div>
+    <div class="end-level-detail" id="endLevelDetail">Your Cindy benchmark</div>
+    <div class="end-level-target" id="endLevelTarget"></div>
+  </div>
   <div class="end-stats">
     <div class="end-stat">
       <div class="end-stat-val" id="endPullups">0</div>
@@ -1134,6 +1098,7 @@
 <audio id="bgMusic" preload="none"></audio>
 
 <script src="./storage.js"></script>
+<script src="./scoring.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════════════
 // CINDY Workout Tracker — Pure Vanilla JS
@@ -1186,10 +1151,8 @@ const nextTrackBtn = $('nextTrackBtn');
 const trackLabel   = $('trackLabel');
 const voiceDot     = $('voiceDot');
 const musicFile    = $('musicFile');
-const micBtn       = $('micBtn');
-const micStatus    = $('micStatus');
-const micLanguage  = $('micLanguage');
 const shortcutBtn  = $('shortcutBtn');
+const fullscreenBtn = $('fullscreenBtn');
 const shortcutDialog = $('shortcutDialog');
 const shortcutCloseBtn = $('shortcutCloseBtn');
 const wakePanel     = $('wakePanel');
@@ -1209,11 +1172,52 @@ configInputs.forEach((input, index) => {
   const key = ['pullups', 'pushups', 'squats'][index];
   if (savedSettings.recipe?.[key]) input.value = savedSettings.recipe[key];
 });
-if (savedSettings.language) micLanguage.value = savedSettings.language;
 if (Number.isFinite(savedSettings.volume)) volumeSlider.value = savedSettings.volume;
 bgMusic.volume = parseFloat(volumeSlider.value);
 updateRing(TOTAL);
 syncWorkoutConfig();
+
+// ── FULLSCREEN ───────────────────────────────────────────────────────────────
+const fullscreenSupported = Boolean(
+  document.fullscreenEnabled
+  || document.webkitFullscreenEnabled
+  || document.documentElement.requestFullscreen
+  || document.documentElement.webkitRequestFullscreen
+);
+
+function isFullscreen() {
+  return Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+}
+
+function updateFullscreenButton() {
+  const active = isFullscreen();
+  fullscreenBtn.hidden = !fullscreenSupported;
+  fullscreenBtn.setAttribute('aria-pressed', String(active));
+  fullscreenBtn.setAttribute('aria-label', active ? 'Exit fullscreen' : 'Enter fullscreen');
+  fullscreenBtn.title = active ? 'Exit fullscreen (F)' : 'Enter fullscreen (F)';
+  fullscreenBtn.textContent = active ? '↙' : '⛶';
+}
+
+async function toggleFullscreen() {
+  if (!fullscreenSupported) return;
+  try {
+    if (isFullscreen()) {
+      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      if (exit) await exit.call(document);
+    } else {
+      const enter = document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen;
+      if (enter) await enter.call(document.documentElement, { navigationUI: 'hide' });
+    }
+  } catch {
+    // Some mobile browsers expose the API but only allow it from specific UI contexts.
+  }
+  updateFullscreenButton();
+}
+
+fullscreenBtn.addEventListener('click', toggleFullscreen);
+document.addEventListener('fullscreenchange', updateFullscreenButton);
+document.addEventListener('webkitfullscreenchange', updateFullscreenButton);
+updateFullscreenButton();
 
 // ── SCREEN WAKE LOCK ─────────────────────────────────────────────────────────
 let wakeLock = null;
@@ -1326,15 +1330,15 @@ document.addEventListener('keydown', event => {
   } else if (key === 's' && S.status === 'idle') {
     event.preventDefault();
     startBtn.click();
-  } else if (key === 'v' && S.status === 'running' && !micBtn.disabled) {
-    event.preventDefault();
-    micBtn.click();
   } else if (key === 'm') {
     event.preventDefault();
     muteBtn.click();
   } else if (key === 'n') {
     event.preventDefault();
     nextTrackBtn.click();
+  } else if (key === 'f' && fullscreenSupported) {
+    event.preventDefault();
+    toggleFullscreen();
   }
 });
 
@@ -1422,9 +1426,8 @@ for (let number = 1; number <= 10; number++) {
 }
 
 function updateMusicVolume() {
-  const micFactor = micArmed ? .25 : 1;
   const voiceFactor = _speaking ? .28 : 1;
-  bgMusic.volume = parseFloat(volumeSlider.value) * micFactor * voiceFactor;
+  bgMusic.volume = parseFloat(volumeSlider.value) * voiceFactor;
 }
 
 function setVoiceActive(active) {
@@ -1586,6 +1589,7 @@ startBtn.addEventListener('click', () => {
     setConfigLocked(true);
     S.status = 'countdown';
     S.startedAt = new Date().toISOString();
+    document.body.classList.add('workout-active');
     requestWakeLock();
     startBtn.disabled = true;
     runCountdown(() => {
@@ -1597,7 +1601,7 @@ startBtn.addEventListener('click', () => {
       startBtn.disabled = false;
       startBtn.textContent = '⏸ Pause';
       doneBtn.disabled = false;
-      updateMicAvailability();
+      document.body.classList.add('workout-active');
       renderPills();
     });
   } else if (S.status === 'running') {
@@ -1617,12 +1621,10 @@ function pauseWorkout() {
   S.endsAt = null;
   clearInterval(S.intervalId);
   releaseWakeLock();
-  stopRoundListening(false);
   bgMusic.pause();
   setStatus('Paused', 'paused');
   startBtn.textContent = '▶ Resume';
   doneBtn.disabled = true;
-  updateMicAvailability();
   playVoiceCue('paused', 'Workout paused.', true);
   renderPills();
 }
@@ -1636,8 +1638,6 @@ function resumeWorkout() {
   setStatus('Running', 'running');
   startBtn.textContent = '⏸ Pause';
   doneBtn.disabled = false;
-  updateMicAvailability();
-  startRoundListening();
   playVoiceCue('resume', 'Go!', true);
   renderPills();
 }
@@ -1647,7 +1647,6 @@ function resetWorkout() {
   clearInterval(S.countdownId);
   stopCurrentVoice();
   _queue.length = 0;
-  stopRoundListening(true);
   releaseWakeLock();
   bgMusic.pause();
   bgMusic.currentTime = 0;
@@ -1664,7 +1663,7 @@ function resetWorkout() {
   startBtn.disabled     = false;
   doneBtn.disabled      = true;
   setConfigLocked(false);
-  updateMicAvailability();
+  document.body.classList.remove('workout-active');
   historyList.innerHTML = '';
   endScreen.classList.remove('visible');
   pills.forEach(p => p.classList.remove('active','done-ex'));
@@ -1682,8 +1681,7 @@ function finishWorkout() {
   setStatus('Done! 🔥', 'done');
   doneBtn.disabled  = true;
   startBtn.disabled = true;
-  stopRoundListening(true);
-  updateMicAvailability();
+  document.body.classList.remove('workout-active');
   renderPills();
 
   const completedRounds = S.round - 1;
@@ -1724,11 +1722,16 @@ function showEndScreen(rounds) {
   const totalPullups = rounds * EXES[0].reps;
   const totalPushups = rounds * EXES[1].reps;
   const totalSquats  = rounds * EXES[2].reps;
+  const recipe = { pullups: EXES[0].reps, pushups: EXES[1].reps, squats: EXES[2].reps };
+  const level = window.CindyScoring.classify(rounds, recipe);
 
   $('endScore').textContent   = rounds;
   $('endPullups').textContent = totalPullups;
   $('endPushups').textContent = totalPushups;
   $('endSquats').textContent  = totalSquats;
+  $('endLevel').textContent = level.label;
+  $('endLevelDetail').textContent = `${level.range} · ${level.standard}. ${level.description}`;
+  $('endLevelTarget').textContent = level.next;
 
   const eh = $('endHistory');
   eh.innerHTML = S.history.length
@@ -1737,7 +1740,6 @@ function showEndScreen(rounds) {
           <span class="h-time">${h.time}</span>
           <span class="h-round">R${h.round}</span>
           <span class="h-reps">Round completed</span>
-          ${h.source === 'voice' ? '<span class="h-source" title="Voice command">●</span>' : ''}
         </div>`).join('')
     : '<div style="color:var(--muted);font-size:11px;text-align:center;padding:6px 0;">No rounds completed</div>';
 
@@ -1751,149 +1753,8 @@ function addRoundHistoryItem(entry) {
   item.innerHTML = `
     <span class="h-time">${entry.time}</span>
     <span class="h-round">R${entry.round}</span>
-    <span class="h-reps">Round completed</span>
-    ${entry.source === 'voice' ? '<span class="h-source" title="Voice command">●</span>' : ''}`;
+    <span class="h-reps">Round completed</span>`;
   historyList.prepend(item);
-}
-
-// ── HANDS-FREE ROUND CONTROL ─────────────────────────────────────────────────
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-const recognition = SpeechRecognition ? new SpeechRecognition() : null;
-let micListening = false;
-let micArmed = false;
-let micRestartId = null;
-
-function isNextRoundCommand(transcript) {
-  const command = transcript.toLowerCase().replace(/[-–—]/g, ' ').replace(/[^a-zà-ÿ\s]/gi, ' ').replace(/\s+/g, ' ').trim();
-  return /\bnext\s+(?:the\s+)?round\b/i.test(command)
-    || /\b(?:prossimo|prossima)\s+(?:round|giro)\b/i.test(command);
-}
-
-function setMicStatus(text, state = '') {
-  micStatus.textContent = text;
-  micStatus.className = 'mic-status' + (state ? ` ${state}` : '');
-}
-
-function updateMicAvailability() {
-  if (!recognition) return;
-  micBtn.disabled = S.status !== 'running';
-  if (S.status === 'idle') {
-    setMicStatus('Start the workout, then tap once to enable hands-free listening.');
-  } else if (S.status === 'running' && !micArmed) {
-    setMicStatus('Tap once to enable hands-free round control.');
-  } else if (S.status === 'paused') {
-    setMicStatus('Voice control paused with the workout.');
-  } else if (S.status === 'done') {
-    setMicStatus('Workout complete.', 'success');
-  }
-}
-
-function setListeningVisual(active) {
-  micBtn.classList.toggle('listening', active);
-  micBtn.setAttribute('aria-pressed', String(micArmed));
-  updateMusicVolume();
-}
-
-function startRoundListening() {
-  if (!recognition || !micArmed || micListening || S.status !== 'running') return;
-  clearTimeout(micRestartId);
-  recognition.lang = micLanguage.value;
-  try {
-    recognition.start();
-  } catch (error) {
-    if (error.name !== 'InvalidStateError') {
-      micArmed = false;
-      setListeningVisual(false);
-      setMicStatus('Could not start voice control. Try again.', 'error');
-    }
-  }
-}
-
-function stopRoundListening(disarm = false) {
-  clearTimeout(micRestartId);
-  if (disarm) micArmed = false;
-  if (recognition && micListening) recognition.stop();
-  if (disarm || !micListening) setListeningVisual(false);
-}
-
-if (recognition) {
-  recognition.continuous = true;
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 3;
-
-  micBtn.addEventListener('click', () => {
-    if (S.status !== 'running') return;
-    if (micArmed) {
-      stopRoundListening(true);
-      setMicStatus('Voice round control off. Tap to enable it again.');
-      return;
-    }
-
-    stopCurrentVoice();
-    _queue.length = 0;
-    micArmed = true;
-    setListeningVisual(true);
-    setMicStatus('Always listening. Say “next round” or “prossimo round”.', 'listening');
-    startRoundListening();
-  });
-
-  recognition.onstart = () => {
-    micListening = true;
-    setListeningVisual(true);
-    setMicStatus('Always listening. Say “next round” or “prossimo round”.', 'listening');
-    navigator.vibrate?.(40);
-  };
-
-  recognition.onresult = event => {
-    let transcript = '';
-
-    for (let resultIdx = event.resultIndex; resultIdx < event.results.length; resultIdx++) {
-      for (let alternativeIdx = 0; alternativeIdx < event.results[resultIdx].length; alternativeIdx++) {
-        transcript = event.results[resultIdx][alternativeIdx].transcript;
-        if (isNextRoundCommand(transcript)) break;
-      }
-      if (isNextRoundCommand(transcript)) break;
-    }
-
-    if (isNextRoundCommand(transcript)) {
-      const entry = completeRound('voice');
-      if (entry) {
-        setMicStatus(`Round ${entry.round} logged. Listening for the next one.`, 'success');
-        navigator.vibrate?.([35, 45, 35]);
-      }
-    } else {
-      setMicStatus('Still listening. Say exactly “next round” or “prossimo round”.', 'listening');
-    }
-  };
-
-  recognition.onerror = event => {
-    const messages = {
-      'not-allowed': 'Microphone access was blocked. Allow it in browser settings.',
-      'audio-capture': 'No microphone was found.',
-      'no-speech': 'No speech heard. Voice control is still listening.',
-      network: 'Speech recognition needs a network connection.',
-    };
-    if (event.error === 'not-allowed' || event.error === 'audio-capture' || event.error === 'network') {
-      micArmed = false;
-      setListeningVisual(false);
-    }
-    if (event.error !== 'aborted') {
-      setMicStatus(messages[event.error] || 'Voice recognition failed. Please try again.', 'error');
-    }
-  };
-
-  recognition.onend = () => {
-    micListening = false;
-    if (micArmed && S.status === 'running') {
-      micRestartId = setTimeout(startRoundListening, 250);
-    } else {
-      setListeningVisual(false);
-    }
-  };
-} else {
-  micBtn.disabled = true;
-  micLanguage.disabled = true;
-  setMicStatus('Voice input requires Chrome or Edge on localhost or HTTPS.', 'error');
 }
 
 // ── MUSIC ────────────────────────────────────────────────────────────────────
@@ -1947,14 +1808,6 @@ volumeSlider.addEventListener('input', e => {
   window.CindyStore?.saveSettings({ volume: parseFloat(e.target.value) });
 });
 
-micLanguage.addEventListener('change', () => {
-  window.CindyStore?.saveSettings({ language: micLanguage.value });
-  if (micArmed) {
-    stopRoundListening(false);
-    setTimeout(startRoundListening, 300);
-  }
-});
-
 muteBtn.addEventListener('click', () => {
   S.muted = !S.muted;
   bgMusic.muted = S.muted;
@@ -1981,8 +1834,9 @@ $('copyBtn').addEventListener('click', () => {
   const pullups = $('endPullups').textContent;
   const pushups = $('endPushups').textContent;
   const squats  = $('endSquats').textContent;
+  const level   = $('endLevel').textContent;
   const date    = new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
-  const txt     = `CINDY — ${date}\nRounds: ${rounds}\nPull-ups: ${pullups}  |  Push-ups: ${pushups}  |  Squats: ${squats}\n#Cindy #CrossFit`;
+  const txt     = `CINDY — ${date}\nRounds: ${rounds}\nLevel: ${level}\nPull-ups: ${pullups}  |  Push-ups: ${pushups}  |  Squats: ${squats}\n#Cindy #CrossFit`;
   navigator.clipboard.writeText(txt).then(() => {
     const b = $('copyBtn');
     b.textContent = '✓ Copied!';

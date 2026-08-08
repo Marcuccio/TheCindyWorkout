@@ -37,7 +37,12 @@
   }
 
   function getSettings() {
-    return read(KEYS.settings, {});
+    const settings = read(KEYS.settings, {});
+    if (settings && typeof settings === 'object' && 'language' in settings) {
+      delete settings.language;
+      write(KEYS.settings, settings);
+    }
+    return settings && typeof settings === 'object' ? settings : {};
   }
 
   function saveSettings(settings) {
@@ -72,7 +77,7 @@
     const roundLog = Array.isArray(session.roundLog) ? session.roundLog.slice(0, rounds).map(item => ({
       time: typeof item?.time === 'string' ? item.time.slice(0, 8) : '',
       round: Number.isInteger(Number(item?.round)) ? Number(item.round) : 0,
-      source: item?.source === 'voice' ? 'voice' : 'manual',
+      source: item?.source === 'keyboard' ? 'keyboard' : 'manual',
     })) : [];
     const completedIso = completedAt.toISOString();
 
@@ -99,7 +104,6 @@
     const volume = Number(settings.volume);
     if (recipe) sanitized.recipe = recipe;
     if (Number.isFinite(volume) && volume >= 0 && volume <= 1) sanitized.volume = volume;
-    if (settings.language === 'en-US' || settings.language === 'it-IT') sanitized.language = settings.language;
     if (typeof settings.wakeLockEnabled === 'boolean') sanitized.wakeLockEnabled = settings.wakeLockEnabled;
     return sanitized;
   }

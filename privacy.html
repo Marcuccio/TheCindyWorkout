@@ -53,8 +53,8 @@
       </article>
 
       <article class="card privacy-card wide notice">
-        <h2>Important microphone note</h2>
-        <p>The app uses the browser's Web Speech API to recognize “next round.” The app itself does not record or store microphone audio. However, browsers such as Chrome or Edge may process speech through services operated by their vendor. This behavior is controlled by your browser, not by this application. You can avoid it entirely by leaving voice control disabled and using the Complete Round button.</p>
+        <h2>No microphone access</h2>
+        <p>Cindy Workout never requests microphone permission and does not listen to or record audio. Fixed coach announcements use local MP3 files; dynamic round and score announcements use text-to-speech output only.</p>
       </article>
 
       <article class="card privacy-card wide">
@@ -63,9 +63,10 @@
           <li>Workout completion date and time</li>
           <li>Completed rounds and calculated rep totals</li>
           <li>The pull-up, push-up, and squat recipe used</li>
-          <li>Round timestamps and whether a round was logged by button or voice</li>
-          <li>Local preferences such as volume, language, and rep recipe</li>
+          <li>Round timestamps and whether a round was logged by button or keyboard</li>
+          <li>Local preferences such as volume, wake lock, and rep recipe</li>
         </ul>
+        <p>Performance levels are derived in your browser from the saved rounds and recipe. The category is not stored as additional data.</p>
         <div class="actions">
           <button class="button danger" id="clearAllBtn" type="button">Erase all local app data</button>
           <a class="button" href="./performance.html">Review saved performance</a>

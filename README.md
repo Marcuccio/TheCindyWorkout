@@ -1,10 +1,12 @@
 # Cindy Workout Tracker
 
-A static, local-first Cindy workout timer with voice round control, local music, and performance tracking.
+A static, local-first Cindy workout timer with recorded coach cues, local music, and performance tracking.
+
+Completed workouts are categorized using the recipe and round count. Scaled sessions reaching 8 rounds are Beginner; prescribed 5/10/15 sessions are Intermediate at 8-19 rounds, Rx'd at 20-24, and Elite at 25 or more. Results below 8 rounds are shown as Building.
 
 ## Privacy
 
-Workout history and preferences are stored only in browser `localStorage`. The application has no backend, account system, analytics, or advertising. See `privacy.html` for the microphone caveat and full details.
+Workout history and preferences are stored only in browser `localStorage`. The application has no backend, account system, analytics, advertising, or microphone access.
 
 The Performance page can export this local data as JSON and import it into another browser. Imported files are validated and merged locally without upload.
 
@@ -18,10 +20,12 @@ Recorded coach cues are stored as individual MP3 files in `voice/` and are used 
 - `P`: pause
 - `R`: resume
 - `S`: start
-- `V`: toggle voice round control
 - `M`: mute or unmute music
 - `N`: next music track
+- `F`: enter or exit fullscreen
 - `?`: open the shortcuts guide
+
+Fullscreen uses the browser Fullscreen API on supported desktop and Android browsers. iPhone Safari does not allow arbitrary page fullscreen; installing the PWA to the Home Screen provides the equivalent standalone experience.
 
 ## Screen standby
 

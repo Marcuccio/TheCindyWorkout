@@ -116,9 +116,12 @@ h1 {
 .stats-grid,
 .content-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
 }
+.stats-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.content-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
 .card {
   border: 1px solid var(--border);
@@ -130,11 +133,55 @@ h1 {
 
 .stat { padding: 22px; }
 .stat-value { font-size: clamp(30px, 5vw, 46px); font-weight: 820; letter-spacing: -.04em; }
+.level-value { font-size: clamp(22px, 3vw, 32px); }
 .stat-label { margin-top: 8px; color: var(--muted); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; }
 
 .section { margin-top: 18px; padding: clamp(20px, 4vw, 30px); }
 .section h2 { margin: 0 0 6px; font-size: 22px; }
 .section-copy { margin: 0 0 24px; color: var(--muted); line-height: 1.6; }
+
+.level-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.level-card {
+  position: relative;
+  min-height: 180px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(224, 235, 231, .09);
+  border-radius: 16px;
+  background: rgba(224, 235, 231, .025);
+  transition: border-color .2s, background .2s, transform .2s;
+}
+.level-card::after {
+  content: "";
+  position: absolute;
+  inset: auto -30px -45px auto;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--sage);
+  opacity: .06;
+}
+.level-card.current {
+  border-color: rgba(121, 181, 154, .65);
+  background: rgba(121, 181, 154, .1);
+  transform: translateY(-3px);
+}
+.level-card.current::before {
+  content: "Latest";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: var(--green);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.level-card span { color: var(--muted); font-size: 9px; font-weight: 750; letter-spacing: .13em; text-transform: uppercase; }
+.level-card strong { display: block; margin-top: 13px; font-size: 20px; }
+.level-card b { display: block; margin-top: 5px; color: var(--sand); font-size: 13px; }
+.level-card p { margin: 14px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.guide-note { margin: 18px 2px 0; color: var(--green); font-size: 13px; font-weight: 650; }
 
 .chart {
   display: flex;
@@ -168,7 +215,24 @@ h1 {
   border-radius: 14px;
   background: rgba(224, 235, 231, .025);
 }
-.session-date { font-weight: 680; }
+.session-date { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-weight: 680; }
+.level-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 21px;
+  padding: 0 8px;
+  border: 1px solid rgba(140, 166, 161, .25);
+  border-radius: 999px;
+  color: var(--sage);
+  background: rgba(140, 166, 161, .08);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.level-badge.level-rxd,
+.level-badge.level-elite { color: var(--sand); border-color: rgba(215, 168, 110, .28); background: rgba(215, 168, 110, .08); }
+.level-badge.level-building { color: var(--muted); }
 .session-value { color: var(--muted); font-size: 13px; }
 .session-value strong { color: var(--text); }
 
@@ -223,9 +287,15 @@ h1 {
   .site-header { padding-inline: 14px; }
   .site-nav a { padding: 8px; font-size: 11px; }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .level-grid { grid-template-columns: repeat(2, 1fr); }
   .privacy-grid { grid-template-columns: 1fr; }
   .privacy-card.wide { grid-column: auto; }
   .session-row { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 460px) {
+  .level-grid { grid-template-columns: 1fr; }
+  .level-card { min-height: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

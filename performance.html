@@ -32,6 +32,19 @@
       <article class="card stat"><div class="stat-value" id="bestRounds">0</div><div class="stat-label">Best rounds</div></article>
       <article class="card stat"><div class="stat-value" id="averageRounds">0</div><div class="stat-label">Average rounds</div></article>
       <article class="card stat"><div class="stat-value" id="totalReps">0</div><div class="stat-label">Total reps</div></article>
+      <article class="card stat"><div class="stat-value level-value" id="latestLevel">-</div><div class="stat-label">Latest level</div></article>
+    </section>
+
+    <section class="card section">
+      <h2>Cindy score guide</h2>
+      <p class="section-copy">Levels compare a 20-minute Cindy result. Prescribed means the standard 5 pull-ups, 10 push-ups, and 15 squats per round.</p>
+      <div class="level-grid" id="levelGuide">
+        <article class="level-card" data-level="beginner"><span>Scaled</span><strong>Beginner</strong><b>8+ rounds</b><p>Build steady movement quality with a modified recipe.</p></article>
+        <article class="level-card" data-level="intermediate"><span>Prescribed</span><strong>Intermediate</strong><b>8-19 rounds</b><p>Complete the standard recipe consistently.</p></article>
+        <article class="level-card" data-level="rxd"><span>Prescribed</span><strong>Rx'd</strong><b>20-24 rounds</b><p>Sustain at least one full round per minute.</p></article>
+        <article class="level-card" data-level="elite"><span>Prescribed</span><strong>Elite</strong><b>25+ rounds</b><p>Hold an exceptional pace for the full workout.</p></article>
+      </div>
+      <p class="guide-note" id="levelNote">Complete a workout to highlight your latest level.</p>
     </section>
 
     <section class="card section">
@@ -56,6 +69,7 @@
   </main>
 
   <script src="./storage.js"></script>
+  <script src="./scoring.js"></script>
   <script>
     const $ = id => document.getElementById(id);
 
@@ -73,6 +87,16 @@
       $('averageRounds').textContent = rounds.length ? (rounds.reduce((sum, value) => sum + value, 0) / rounds.length).toFixed(1) : '0';
       $('totalReps').textContent = reps.toLocaleString();
 
+      const latest = sessions[sessions.length - 1];
+      const latestLevel = latest ? window.CindyScoring.classify(latest.rounds, latest.recipe) : null;
+      $('latestLevel').textContent = latestLevel?.label || '-';
+      document.querySelectorAll('.level-card').forEach(card => {
+        card.classList.toggle('current', card.dataset.level === latestLevel?.key);
+      });
+      $('levelNote').textContent = latestLevel
+        ? `Latest result: ${latestLevel.label} · ${latestLevel.next}`
+        : 'Complete a workout to highlight your latest level.';
+
       const recent = sessions.slice(-10);
       const max = Math.max(1, ...recent.map(session => session.rounds));
       $('chart').innerHTML = recent.length ? recent.map((session, index) => `
@@ -82,13 +106,16 @@
           <div class="bar-label">${new Date(session.completedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</div>
         </div>`).join('') : '<div class="empty">Complete your first workout to begin the chart.</div>';
 
-      $('sessionList').innerHTML = sessions.length ? sessions.slice().reverse().map(session => `
+      $('sessionList').innerHTML = sessions.length ? sessions.slice().reverse().map(session => {
+        const level = window.CindyScoring.classify(session.rounds, session.recipe);
+        return `
         <article class="session-row">
-          <div class="session-date">${formatDate(session.completedAt)}</div>
+          <div class="session-date">${formatDate(session.completedAt)} <span class="level-badge level-${level.key}">${level.label}</span></div>
           <div class="session-value"><strong>${session.rounds}</strong> rounds</div>
           <div class="session-value"><strong>${session.totalReps}</strong> reps</div>
           <div class="session-value">${session.recipe.pullups}/${session.recipe.pushups}/${session.recipe.squats}</div>
-        </article>`).join('') : '<div class="empty">No completed workouts saved yet.</div>';
+        </article>`;
+      }).join('') : '<div class="empty">No completed workouts saved yet.</div>';
     }
 
     $('exportBtn').addEventListener('click', () => {
