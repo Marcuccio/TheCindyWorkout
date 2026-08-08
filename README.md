@@ -23,6 +23,10 @@ Recorded coach cues are stored as individual MP3 files in `voice/` and are used 
 - `N`: next music track
 - `?`: open the shortcuts guide
 
+## Screen standby
+
+The app requests a Screen Wake Lock while a workout is running, releases it while paused, and reacquires it when the page becomes visible again. This keeps the controls available on supported mobile browsers. If the browser suspends the page anyway, the countdown is recalculated from the real clock when the app returns.
+
 ## Run locally
 
 ```bash

@@ -100,6 +100,7 @@
     if (recipe) sanitized.recipe = recipe;
     if (Number.isFinite(volume) && volume >= 0 && volume <= 1) sanitized.volume = volume;
     if (settings.language === 'en-US' || settings.language === 'it-IT') sanitized.language = settings.language;
+    if (typeof settings.wakeLockEnabled === 'boolean') sanitized.wakeLockEnabled = settings.wakeLockEnabled;
     return sanitized;
   }
 
