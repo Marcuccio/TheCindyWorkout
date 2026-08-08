@@ -39,3 +39,9 @@ Modifica i testi nella colonna "Testo attuale", poi chiedi di aggiornarli nel co
 - `prossimo giro`
 
 Il microfono si attiva una volta sola e resta in ascolto durante il workout. Questi sono comandi in ingresso e non vengono pronunciati dall'app.
+
+## Audio registrato
+
+Le clip ricavate dalla registrazione ElevenLabs sono in `voice/`. Il file `voice/manifest.json` contiene testo, timestamp e durata di ogni taglio.
+
+I messaggi fissi usano le clip registrate. Le frasi con valori dinamici (`{N}`, `{P}`, `{U}`, `{S}`) continuano a usare la sintesi vocale del browser, perché la registrazione pronuncia letteralmente i segnaposto.

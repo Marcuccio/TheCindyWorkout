@@ -10,6 +10,19 @@ The Performance page can export this local data as JSON and import it into anoth
 
 On supported smartphones, the app suggests adding Cindy to the home screen. Android uses the native install prompt when available; iPhone displays the Share > Add to Home Screen instructions. Dismissing the suggestion hides it for 14 days.
 
+Recorded coach cues are stored as individual MP3 files in `voice/` and are used for fixed announcements. Dynamic round numbers, recipes, and final scores use browser speech synthesis. `voice/manifest.json` documents every source timestamp and exported clip.
+
+## Keyboard shortcuts
+
+- `Space`: complete round
+- `P`: pause
+- `R`: resume
+- `S`: start
+- `V`: toggle voice round control
+- `M`: mute or unmute music
+- `N`: next music track
+- `?`: open the shortcuts guide
+
 ## Run locally
 
 ```bash
