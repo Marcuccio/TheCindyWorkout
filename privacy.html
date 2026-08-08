@@ -4,10 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0d1517">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cindy">
   <title>Privacy | Cindy Workout</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./pages.css">
+  <link rel="stylesheet" href="./install-prompt.css">
 </head>
 <body>
   <header class="site-header">
@@ -46,7 +49,7 @@
       <article class="card privacy-card">
         <div class="privacy-icon">04</div>
         <h2>You control deletion</h2>
-        <p>Clear performance history from the Performance page, erase all app data below, or clear site data in browser settings. There is no remote copy for us to retain.</p>
+        <p>Export or import your history as JSON, clear performance history from the Performance page, erase all app data below, or clear site data in browser settings. JSON files are read directly by your browser and are never uploaded by this app.</p>
       </article>
 
       <article class="card privacy-card wide notice">
@@ -81,5 +84,6 @@
     });
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
   </script>
+  <script src="./install-prompt.js"></script>
 </body>
 </html>

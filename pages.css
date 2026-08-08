@@ -198,6 +198,16 @@ h1 {
 .button.primary { border-color: rgba(140, 166, 161, .4); background: rgba(140, 166, 161, .15); }
 .button.danger { color: #deb2b2; }
 
+.import-status {
+  min-height: 20px;
+  margin: 14px 2px 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.import-status.success { color: var(--green); }
+.import-status.error { color: #deb2b2; }
+
 .privacy-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 .privacy-card { padding: clamp(22px, 4vw, 32px); }
 .privacy-card.wide { grid-column: 1 / -1; }

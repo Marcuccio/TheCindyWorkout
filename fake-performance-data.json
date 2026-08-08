@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "exportedAt": "2026-08-08T10:00:00.000Z",
+  "sessions": [
+    {
+      "id": "demo-2026-06-03",
+      "startedAt": "2026-06-03T16:30:00.000Z",
+      "completedAt": "2026-06-03T16:50:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 8,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 240,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-06-08",
+      "startedAt": "2026-06-08T06:40:00.000Z",
+      "completedAt": "2026-06-08T07:00:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 9,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 270,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-06-14",
+      "startedAt": "2026-06-14T17:10:00.000Z",
+      "completedAt": "2026-06-14T17:30:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 9,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 270,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-06-20",
+      "startedAt": "2026-06-20T08:00:00.000Z",
+      "completedAt": "2026-06-20T08:20:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 10,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 300,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-06-27",
+      "startedAt": "2026-06-27T16:45:00.000Z",
+      "completedAt": "2026-06-27T17:05:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 11,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 330,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-07-03",
+      "startedAt": "2026-07-03T06:25:00.000Z",
+      "completedAt": "2026-07-03T06:45:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 10,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 300,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-07-09",
+      "startedAt": "2026-07-09T17:30:00.000Z",
+      "completedAt": "2026-07-09T17:50:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 12,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 360,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-07-15",
+      "startedAt": "2026-07-15T06:50:00.000Z",
+      "completedAt": "2026-07-15T07:10:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 11,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 330,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-07-21",
+      "startedAt": "2026-07-21T17:15:00.000Z",
+      "completedAt": "2026-07-21T17:35:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 12,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 360,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-07-27",
+      "startedAt": "2026-07-27T06:35:00.000Z",
+      "completedAt": "2026-07-27T06:55:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 13,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 390,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-08-02",
+      "startedAt": "2026-08-02T08:10:00.000Z",
+      "completedAt": "2026-08-02T08:30:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 12,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 360,
+      "roundLog": []
+    },
+    {
+      "id": "demo-2026-08-07",
+      "startedAt": "2026-08-07T17:40:00.000Z",
+      "completedAt": "2026-08-07T18:00:00.000Z",
+      "durationSeconds": 1200,
+      "rounds": 14,
+      "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+      "totalReps": 420,
+      "roundLog": []
+    }
+  ],
+  "settings": {
+    "recipe": { "pullups": 5, "pushups": 10, "squats": 15 },
+    "volume": 0.35,
+    "language": "en-US"
+  }
+}

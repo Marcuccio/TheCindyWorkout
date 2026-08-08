@@ -6,6 +6,10 @@ A static, local-first Cindy workout timer with voice round control, local music,
 
 Workout history and preferences are stored only in browser `localStorage`. The application has no backend, account system, analytics, or advertising. See `privacy.html` for the microphone caveat and full details.
 
+The Performance page can export this local data as JSON and import it into another browser. Imported files are validated and merged locally without upload.
+
+On supported smartphones, the app suggests adding Cindy to the home screen. Android uses the native install prompt when available; iPhone displays the Share > Add to Home Screen instructions. Dismissing the suggestion hides it for 14 days.
+
 ## Run locally
 
 ```bash

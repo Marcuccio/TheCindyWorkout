@@ -4,10 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0d1517">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Cindy">
   <title>Performance | Cindy Workout</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./pages.css">
+  <link rel="stylesheet" href="./install-prompt.css">
 </head>
 <body>
   <header class="site-header">
@@ -44,8 +47,11 @@
       <div class="actions">
         <a class="button primary" href="./index.html">Start a workout</a>
         <button class="button" id="exportBtn" type="button">Export JSON</button>
+        <input id="importFile" type="file" accept="application/json,.json" hidden>
+        <button class="button" id="importBtn" type="button">Import JSON</button>
         <button class="button danger" id="clearBtn" type="button">Clear performance data</button>
       </div>
+      <p class="import-status" id="importStatus" aria-live="polite"></p>
     </section>
   </main>
 
@@ -94,14 +100,45 @@
       URL.revokeObjectURL(link.href);
     });
 
+    $('importBtn').addEventListener('click', () => $('importFile').click());
+
+    $('importFile').addEventListener('change', async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      const status = $('importStatus');
+      status.className = 'import-status';
+
+      try {
+        if (file.size > 5 * 1024 * 1024) throw new Error('The JSON file must be smaller than 5 MB.');
+        const payload = JSON.parse(await file.text());
+        const result = window.CindyStore.importData(payload);
+        const details = [
+          `${result.imported} session${result.imported === 1 ? '' : 's'} imported`,
+          result.duplicates ? `${result.duplicates} duplicate${result.duplicates === 1 ? '' : 's'} skipped` : '',
+          result.invalid ? `${result.invalid} invalid skipped` : '',
+          result.settingsImported ? 'preferences restored' : '',
+        ].filter(Boolean).join(' · ');
+        status.textContent = details || 'The file contained no new sessions.';
+        status.classList.add('success');
+        render();
+      } catch (error) {
+        status.textContent = `Import failed: ${error.message}`;
+        status.classList.add('error');
+      } finally {
+        event.target.value = '';
+      }
+    });
+
     $('clearBtn').addEventListener('click', () => {
       if (!confirm('Delete all saved workout history from this browser? This cannot be undone.')) return;
       window.CindyStore.clearSessions();
+      $('importStatus').textContent = '';
       render();
     });
 
     render();
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
   </script>
+  <script src="./install-prompt.js"></script>
 </body>
 </html>
